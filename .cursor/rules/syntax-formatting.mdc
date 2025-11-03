@@ -1,0 +1,11 @@
+---
+type: always
+---
+
+## Syntax and Formatting
+
+- Use the `function` keyword for pure functions.
+- Handle errors at the start of functions; use early returns; avoid deep nesting and unnecessary else blocks.
+- Use declarative, readable JSX; keep props explicit.
+- Use Prettier to enforce consistent formatting.
+

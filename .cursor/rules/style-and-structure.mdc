@@ -1,0 +1,13 @@
+---
+type: always
+---
+
+## Code Style and Structure
+
+- Write concise, technical TypeScript using functional and declarative patterns. Avoid classes.
+- Prefer iteration and modularization over duplication; extract helpers into small pure functions.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError, shouldRetry, didSucceed).
+- Structure files in this order: exported component → subcomponents → helpers → static content → types.
+- Favor named exports for components and utilities.
+- Follow Expo's documentation for setup/config: https://docs.expo.dev/
+

@@ -1,0 +1,10 @@
+---
+alwaysApply: true
+---
+## Naming Conventions
+
+- Directories: lowercase-with-dashes (e.g., components/auth-wizard).
+- Files: lowercase-with-dashes; use .tsx for components, .ts for logic.
+- Components: PascalCase. Hooks: useCamelCase. Constants: UPPER_SNAKE_CASE.
+- Prefer named exports; avoid default exports for components.
+

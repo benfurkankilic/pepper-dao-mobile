@@ -1,0 +1,17 @@
+---
+type: auto-attached
+globs:
+  - "**/components/**/*.{ts,tsx}"
+  - "**/screens/**/*.{ts,tsx}"
+  - "**/*{component,screen,view,style}*.{ts,tsx}"
+---
+
+## UI and Styling
+
+- Use Expo/React Native primitives for layout and common patterns (View, Text, Pressable).
+- Implement responsive design with Flexbox and `useWindowDimensions`.
+- Use styled-components or Tailwind CSS per file; avoid large inline style objects.
+- Implement dark mode using `useColorScheme` and design tokens.
+- Ensure high accessibility with accessibilityRole/Label/Hint and proper hitSlop.
+- Use `react-native-reanimated` and `react-native-gesture-handler` for performant animations and gestures.
+

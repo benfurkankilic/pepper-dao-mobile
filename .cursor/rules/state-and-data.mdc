@@ -1,0 +1,16 @@
+---
+type: auto-attached
+globs:
+  - "**/*{store,state,context,provider,query,api,hook}*.{ts,tsx}"
+  - "**/hooks/**"
+  - "**/stores/**"
+  - "**/contexts/**"
+---
+
+## State Management and Data Fetching
+
+- Use React Context + `useReducer` for global app/session state.
+- Use `react-query` for data fetching, caching, retries, and background refetching; avoid excessive API calls.
+- For complex state, consider Zustand; keep actions serializable.
+- Handle URL search parameters using `expo-linking`.
+

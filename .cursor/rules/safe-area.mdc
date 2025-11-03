@@ -1,0 +1,15 @@
+---
+type: auto-attached
+globs:
+  - "**/components/**/*.{ts,tsx}"
+  - "**/screens/**/*.{ts,tsx}"
+  - "**/app/**/*.{ts,tsx}"
+---
+
+## Safe Area Management
+
+- Wrap the app with `SafeAreaProvider` (react-native-safe-area-context).
+- Wrap top-level screens with `SafeAreaView` to handle notches, status bars, and insets.
+- Use a `SafeAreaScrollView` (or wrapper) for scrollable content; ensure insets are respected.
+- Avoid hardcoding padding/margins for safe areas; rely on provider and hooks.
+

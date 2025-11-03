@@ -1,0 +1,14 @@
+---
+type: agent-requested
+description: Performance optimization guidelines for React Native and Expo apps, including tips on state management, code splitting, memoization, and image optimization.
+---
+
+## Performance Optimization
+
+- Minimize `useState`/`useEffect`; prefer Context + reducers for shared state.
+- Use Expo SplashScreen/AppLoading for optimized startup; lazy-load non-critical modules.
+- Optimize images: prefer WebP (where supported), provide width/height, use `expo-image` with caching.
+- Implement code splitting via dynamic `import()` and React Suspense.
+- Prevent unnecessary re-renders with `React.memo`, `useMemo`, and `useCallback` where measurable.
+- Profile with RN dev tools and Expo debugging features.
+

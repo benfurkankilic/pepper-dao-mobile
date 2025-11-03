@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+---
+## Error Handling and Validation
+
+- Validate inputs and responses with Zod.
+- Handle errors first: use guard clauses and early returns to avoid deep nesting.
+- Avoid unnecessary `else`; prefer if-return patterns.
+- Implement global error boundaries to catch unexpected errors.
+- Log errors with Sentry (or similar) and `expo-error-reporter` in production.
+

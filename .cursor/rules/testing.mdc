@@ -1,0 +1,15 @@
+---
+type: auto-attached
+globs:
+  - "**/*.{test,spec}.{ts,tsx}"
+  - "**/__tests__/**"
+  - "**/__mocks__/**"
+---
+
+## Testing
+
+- Unit tests with Jest and React Native Testing Library.
+- Integration/E2E tests for critical flows using Detox.
+- Use Expo testing tools to run tests in different environments.
+- Consider snapshot tests for UI stability where beneficial.
+

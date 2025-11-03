@@ -1,0 +1,13 @@
+---
+type: auto-attached
+globs:
+  - "**/app/**/*.{ts,tsx}"
+  - "**/*{navigation,routing,router,link}*.{ts,tsx}"
+---
+
+## Navigation
+
+- Use `expo-router` for navigation and routing; leverage file-based and dynamic route patterns.
+- Organize routes with nested folders and conventions for stacks, tabs, and modals per `expo-router` documentation.
+- Support deep linking and universal links via `expo-router` and `expo-linking` configuration.
+

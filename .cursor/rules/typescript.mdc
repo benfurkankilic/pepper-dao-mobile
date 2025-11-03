@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+---
+## TypeScript Usage
+
+- Use TypeScript for all code; enable strict mode.
+- Prefer interfaces over types for object shapes; use discriminated unions for variants.
+- Do not use `any`, `unknown`, or `typeof`. Avoid unsafe casts.
+- Avoid enums; use string literal unions or maps instead.
+- Write functional components with interface-based props.
+
