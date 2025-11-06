@@ -1,15 +1,11 @@
 ---
-type: auto-attached
-globs:
-  - "**/*.{test,spec}.{ts,tsx}"
-  - "**/__tests__/**"
-  - "**/__mocks__/**"
+description: Testing strategies and best practices for React Native
+globs: **/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx
 ---
 
-## Testing
-
-- Unit tests with Jest and React Native Testing Library.
-- Integration/E2E tests for critical flows using Detox.
-- Use Expo testing tools to run tests in different environments.
-- Consider snapshot tests for UI stability where beneficial.
-
+- Write unit tests using Jest and React Native Testing Library
+- Implement integration tests for critical user flows using Detox
+- Use Expo's testing tools for running tests in different environments
+- Consider snapshot testing for components to ensure UI consistency
+- Test both iOS and Android platforms for compatibility
+- Ensure high test coverage for critical business logic and user flows

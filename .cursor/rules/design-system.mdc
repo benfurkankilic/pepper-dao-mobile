@@ -1,0 +1,160 @@
+---
+description: Design system and visual identity for Pepper DAO Mobile
+globs: **/*.tsx,**/components/**/*.ts,**/constants/**/*.ts
+---
+
+## Design Philosophy
+- Retro gaming/pixel art aesthetic inspired by 8-bit and 16-bit era games
+- Bold, vibrant color palette with high contrast
+- Chunky, tactile UI elements that feel satisfying to interact with
+- Nostalgic yet modern approach to crypto/DAO interface
+
+## Color Palette
+- **Primary Colors**: Bright, saturated colors (hot pink, electric blue, neon green, vibrant purple)
+- **Secondary Colors**: Complementary accent colors for highlights and CTAs
+- **Background**: Deep, dark backgrounds (black, dark purple, navy) to make colors pop
+- **Text**: High contrast white or bright colors on dark backgrounds
+- **Borders**: Bold, solid colors (often white or bright accent colors)
+- Use color blocks rather than gradients for that authentic pixel art feel
+
+## Typography
+- **Primary Font**: Pixel/bitmap font (e.g., Press Start 2P, VT323, or similar retro gaming fonts)
+- **Hierarchy**: 
+  - Large headings: 24-32px (pixel-scaled)
+  - Body text: 14-16px (ensure readability on mobile)
+  - Small text/captions: 10-12px
+- **Spacing**: Generous letter-spacing for readability in pixel fonts
+- **Weight**: Most pixel fonts come in single weight; use size and color for emphasis
+
+## Component Patterns
+
+### Buttons
+- Chunky rectangular shapes with thick borders (3-4px)
+- Distinct pressed/active states (inner shadow, position shift)
+- Bright, contrasting colors
+- Use `<Pressable>` with transform animations on press
+- Add haptic feedback for tactile response
+
+### Cards
+- Sharp corners, no border-radius
+- Thick solid borders (2-3px)
+- Optional: Double borders for extra depth
+- Box shadow or layered borders for 3D effect
+- Padding: 16-24px for comfortable touch targets
+
+### Icons
+- Pixel art style or simple geometric shapes
+- 24x24px or 32x32px grid-based sizing
+- Monochrome or limited color palette per icon
+- Use SVG or bitmap assets scaled properly
+
+### Input Fields
+- Rectangular with thick borders
+- Inset shadow when focused
+- Bright border color on focus state
+- Pixel font for input text
+- Sufficient padding (12-16px) for touch interaction
+
+### Navigation
+- Tab bar with chunky icons and labels
+- Active state with color change or underline/highlight
+- Consider retro game menu aesthetics
+- Use pixel-art style dividers between sections
+
+## Spacing System
+- **Base unit**: 8px
+- **Small**: 8px
+- **Medium**: 16px
+- **Large**: 24px
+- **XLarge**: 32px
+- Use multiples of 8 for consistent grid-based layout
+
+## Effects & Shadows
+- **Box shadows**: Use solid color shadows positioned offset (not blurred)
+  ```
+  shadowColor: '#000000',
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 1,
+  shadowRadius: 0,  // No blur for pixel-perfect look
+  ```
+- **Layering**: Stack elements with offset shadows for depth
+- **Borders**: Prefer multiple borders over single thick border for retro look
+
+## Motion & Animation
+- **Duration**: Short, snappy animations (100-200ms)
+- **Easing**: Linear or easeInOut, avoid complex curves
+- **Types**: 
+  - Instant state changes (like classic games)
+  - Pixel-by-pixel scrolling effects
+  - Pop-in/pop-out (scale transforms)
+  - Slide transitions for screen changes
+- **Haptics**: Use Expo Haptics for button presses and important actions
+
+## Mobile-Specific Considerations
+- Touch targets: Minimum 44x44px (iOS) / 48x48px (Android)
+- Thumb zones: Place primary actions within easy thumb reach
+- Pixel density: Scale pixel art appropriately for different screen densities
+- Safe areas: Account for notches and rounded corners while maintaining retro aesthetic
+
+## Asset Guidelines
+- Export icons and graphics as SVG or high-resolution PNGs (2x, 3x)
+- Use pixel art tools or ensure nearest-neighbor scaling for crisp pixels
+- Keep file sizes small for performance
+- Consider using sprite sheets for animations
+
+## Styling with NativeWind
+- Use NativeWind (Tailwind CSS for React Native) for all component styling
+- Apply utility classes via the className prop
+- Configure custom theme in tailwind.config.js for retro aesthetic
+- Use class variance authority (CVA) or similar for component variants
+
+## Example Component Structure
+```typescript
+import { Pressable, Text } from 'react-native';
+
+// Using NativeWind utility classes
+function RetroButton({ children, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="bg-[#FF006E] border-4 border-white px-8 py-4 shadow-[4px_4px_0px_#000000] active:shadow-none active:translate-x-1 active:translate-y-1"
+    >
+      <Text className="font-pixel text-sm text-white uppercase tracking-wider">
+        {children}
+      </Text>
+    </Pressable>
+  );
+}
+```
+
+## Tailwind Config Example
+```javascript
+// tailwind.config.js
+module.exports = {
+  content: ['./app/**/*.{js,jsx,ts,tsx}', './components/**/*.{js,jsx,ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        'retro-pink': '#FF006E',
+        'retro-blue': '#0080FF',
+        'retro-purple': '#8000FF',
+        'retro-green': '#00FF80',
+      },
+      fontFamily: {
+        'pixel': ['PressStart2P', 'monospace'],
+      },
+      boxShadow: {
+        'retro': '4px 4px 0px #000000',
+        'retro-lg': '6px 6px 0px #000000',
+      },
+      borderWidth: {
+        '3': '3px',
+      },
+    },
+  },
+  plugins: [],
+};
+```
+
+## Reference
+Design inspiration from classic games: Super Mario Bros, Mega Man, Street Fighter, and modern retro games with pixel art aesthetics. Balance nostalgia with modern usability and accessibility standards.

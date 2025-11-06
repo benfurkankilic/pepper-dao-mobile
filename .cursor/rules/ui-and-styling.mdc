@@ -1,17 +1,35 @@
 ---
-type: auto-attached
-globs:
-  - "**/components/**/*.{ts,tsx}"
-  - "**/screens/**/*.{ts,tsx}"
-  - "**/*{component,screen,view,style}*.{ts,tsx}"
+description: UI components, styling, and design patterns for React Native
+globs: **/*.tsx,**/components/**/*.ts
 ---
 
-## UI and Styling
+## Bitmap/Retro Gaming Style
+- Follow a retro gaming/pixel art aesthetic with bold, vibrant colors
+- Use pixelated fonts and bitmap-style graphics throughout the app
+- Implement chunky borders, sharp corners, and retro UI elements
+- Create a nostalgic 8-bit/16-bit gaming experience
 
-- Use Expo/React Native primitives for layout and common patterns (View, Text, Pressable).
-- Implement responsive design with Flexbox and `useWindowDimensions`.
-- Use styled-components or Tailwind CSS per file; avoid large inline style objects.
-- Implement dark mode using `useColorScheme` and design tokens.
-- Ensure high accessibility with accessibilityRole/Label/Hint and proper hitSlop.
-- Use `react-native-reanimated` and `react-native-gesture-handler` for performant animations and gestures.
+## Component Styling
+- Use NativeWind (Tailwind CSS for React Native) for all styling
+- Apply utility classes via className prop for consistent, maintainable styles
+- Implement pixel-perfect borders with bold outlines (border-2, border-4)
+- Use box shadows to create depth and 3D effects typical of retro games
+- Avoid rounded corners (rounded-none); prefer sharp, rectangular shapes
+- Create button states that mimic classic game UI using pressed/active state classes
+- Extend tailwind.config.js with custom colors, shadows, and spacing for retro theme
 
+## Layout & Responsiveness
+- Use Expo's built-in components for common UI patterns and layouts
+- Implement responsive design with Flexbox and Expo's useWindowDimensions for screen size adjustments
+- Ensure pixel-perfect alignment and grid-based layouts
+
+## Animations & Interactions
+- Leverage react-native-reanimated and react-native-gesture-handler for performant animations
+- Use snappy, immediate transitions rather than smooth easing (retro feel)
+- Implement subtle pixel-art style animations and transitions
+- Add satisfying tactile feedback with haptics for button interactions
+
+## Accessibility
+- Ensure high accessibility (a11y) standards using ARIA roles and native accessibility props
+- Maintain sufficient contrast ratios despite vibrant color palette
+- Support screen readers with proper semantic elements

@@ -1,10 +1,11 @@
 ---
+description: Naming conventions for directories, files, and exports
+globs: *.ts,*.tsx
 alwaysApply: true
 ---
-## Naming Conventions
 
-- Directories: lowercase-with-dashes (e.g., components/auth-wizard).
-- Files: lowercase-with-dashes; use .tsx for components, .ts for logic.
-- Components: PascalCase. Hooks: useCamelCase. Constants: UPPER_SNAKE_CASE.
-- Prefer named exports; avoid default exports for components.
-
+- Use lowercase with dashes for directories (e.g., components/auth-wizard)
+- Favor named exports for components over default exports
+- Use PascalCase for component and class names
+- Use camelCase for function and variable names
+- Use UPPERCASE_SNAKE_CASE for constants

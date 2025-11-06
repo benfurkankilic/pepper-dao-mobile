@@ -1,11 +1,11 @@
 ---
-type: always
+description: Syntax and code formatting standards
+globs: *.ts,*.tsx
+alwaysApply: true
 ---
 
-## Syntax and Formatting
-
-- Use the `function` keyword for pure functions.
-- Handle errors at the start of functions; use early returns; avoid deep nesting and unnecessary else blocks.
-- Use declarative, readable JSX; keep props explicit.
-- Use Prettier to enforce consistent formatting.
-
+- Use the "function" keyword for pure functions
+- Prefer `function foo()` over `const foo = () =>` for named functions
+- Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements
+- Use declarative JSX
+- Use Prettier for consistent code formatting

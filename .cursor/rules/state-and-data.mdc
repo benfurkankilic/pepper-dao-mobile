@@ -1,16 +1,10 @@
 ---
-type: auto-attached
-globs:
-  - "**/*{store,state,context,provider,query,api,hook}*.{ts,tsx}"
-  - "**/hooks/**"
-  - "**/stores/**"
-  - "**/contexts/**"
+description: State management and data fetching patterns
+globs: **/*.tsx,**/*.ts
 ---
 
-## State Management and Data Fetching
-
-- Use React Context + `useReducer` for global app/session state.
-- Use `react-query` for data fetching, caching, retries, and background refetching; avoid excessive API calls.
-- For complex state, consider Zustand; keep actions serializable.
-- Handle URL search parameters using `expo-linking`.
-
+- Use React Context and useReducer for managing global state
+- Leverage react-query for data fetching and caching; avoid excessive API calls
+- For complex state management, consider using Zustand or Redux Toolkit
+- Handle URL search parameters using libraries like expo-linking
+- Minimize the use of useState; prefer context and reducers for better state management

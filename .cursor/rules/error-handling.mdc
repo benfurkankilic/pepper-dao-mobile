@@ -1,11 +1,13 @@
 ---
-alwaysApply: true
+description: Error handling, validation, and edge case management
+globs: **/*.ts,**/*.tsx
 ---
-## Error Handling and Validation
 
-- Validate inputs and responses with Zod.
-- Handle errors first: use guard clauses and early returns to avoid deep nesting.
-- Avoid unnecessary `else`; prefer if-return patterns.
-- Implement global error boundaries to catch unexpected errors.
-- Log errors with Sentry (or similar) and `expo-error-reporter` in production.
-
+- Use Zod for runtime validation and error handling
+- Implement proper error logging using Sentry or a similar service
+- Handle errors at the beginning of functions
+- Use early returns for error conditions to avoid deeply nested if statements
+- Avoid unnecessary else statements; use if-return pattern instead
+- Implement global error boundaries to catch and handle unexpected errors
+- Use expo-error-reporter for logging and reporting errors in production
+- Prioritize error handling and edge cases in all functions

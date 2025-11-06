@@ -1,13 +1,14 @@
 ---
-type: auto-attached
-globs:
-  - "**/app/**/*.{ts,tsx}"
-  - "**/*{navigation,routing,router,link}*.{ts,tsx}"
+description: Navigation and routing patterns using expo-router
+globs: **/app/**/*.tsx
 ---
 
-## Navigation
-
-- Use `expo-router` for navigation and routing; leverage file-based and dynamic route patterns.
-- Organize routes with nested folders and conventions for stacks, tabs, and modals per `expo-router` documentation.
-- Support deep linking and universal links via `expo-router` and `expo-linking` configuration.
-
+- Use expo-router for all routing and navigation following the file-based routing convention
+- Organize routes using the app directory structure (e.g., app/(tabs)/, app/modal.tsx)
+- Use layout files (_layout.tsx) to configure navigation structure for stack, tab, and drawer navigators
+- Leverage dynamic routes with [param] syntax for parameterized paths (e.g., app/user/[id].tsx)
+- Use the Link component from expo-router for type-safe navigation between screens
+- Implement deep linking and universal links using expo-router's built-in support
+- Use router.push(), router.replace(), and router.back() for programmatic navigation
+- Ensure compatibility with iOS and Android by testing navigation flows on both platforms
+- Follow expo-router documentation: https://docs.expo.dev/router/introduction/

@@ -1,0 +1,12 @@
+---
+description: Security best practices for React Native and Expo apps
+globs: **/*.ts,**/*.tsx
+---
+
+- Sanitize user inputs to prevent XSS attacks
+- Use react-native-encrypted-storage for secure storage of sensitive data
+- Ensure secure communication with APIs using HTTPS and proper authentication
+- Follow Expo's Security guidelines: https://docs.expo.dev/guides/security/
+- Use expo-constants for managing environment variables and configuration securely
+- Never commit sensitive credentials or API keys to version control
+- Implement proper token management and refresh mechanisms for authentication
