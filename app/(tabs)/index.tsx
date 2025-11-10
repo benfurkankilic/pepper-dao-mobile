@@ -1,6 +1,11 @@
 import { router } from 'expo-router';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert } from 'react-native';
 
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Colors, FOREST_GREEN, INK } from '@/constants/theme';
 import { useOnboardingContext } from '@/contexts/onboarding-context';
 import { useWalletState } from '@/hooks/use-wallet-state';
 
@@ -19,7 +24,6 @@ export default function HomeScreen() {
           style: 'destructive',
           onPress: () => {
             resetOnboarding();
-            // Force reload by navigating to a placeholder then back
             setTimeout(() => {
               Alert.alert('✅ Reset Complete', 'Onboarding has been reset!', [
                 {
@@ -38,64 +42,61 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 items-center justify-center bg-black p-6">
+    <ThemedView className="flex-1 items-center justify-center p-6">
       {/* Main Card */}
-      <View className="border-4 border-white bg-[#8000FF] p-8 shadow-[6px_6px_0px_#FFFFFF]">
-        <Text className="text-3xl text-white text-center mb-2 uppercase font-bold tracking-wider">
+      <Card elevation="lg" className="p-8 border-4 border-white" style={{ backgroundColor: FOREST_GREEN }}>
+        <ThemedText type="display" className="text-white text-center mb-2">
           🎮 PEPPER DAO
-        </Text>
-        <Text className="text-sm text-[#00FF80] text-center mb-8 uppercase tracking-wide">
+        </ThemedText>
+        <ThemedText type="caption" className="text-mint text-center mb-8">
           HOME BASE
-        </Text>
+        </ThemedText>
 
         {/* Status Info */}
-        <View className="mb-6 border-3 border-white bg-[#1a1a1a] p-4">
-          <Text className="text-white text-xs mb-2">
-            <Text className="font-bold">Onboarding:</Text>{' '}
+        <Card elevation="sm" variant="alt" className="mb-6 p-4 border-white" style={{ backgroundColor: INK }}>
+          <ThemedText type="caption" className="text-white mb-2">
+            <ThemedText type="caption" className="font-bold">Onboarding:</ThemedText>{' '}
             {hasCompletedOnboarding ? '✓ Complete' : '✗ Not Complete'}
-          </Text>
-          <Text className="text-white text-xs">
-            <Text className="font-bold">Wallet:</Text>{' '}
+          </ThemedText>
+          <ThemedText type="caption" className="text-white">
+            <ThemedText type="caption" className="font-bold">Wallet:</ThemedText>{' '}
             {isConnected ? `✓ ${displayAddress}` : '✗ Not Connected'}
-          </Text>
-        </View>
+          </ThemedText>
+        </Card>
 
         {/* Action Buttons */}
-        <Pressable
+        <Button
           onPress={() => router.push('/wallet-demo')}
-          className="bg-[#FF006E] border-4 border-white px-8 py-4 mb-4 shadow-[4px_4px_0px_#000000] active:shadow-none active:translate-x-1 active:translate-y-1"
+          variant="primary"
+          className="mb-4 w-full"
         >
-          <Text className="text-white text-center uppercase text-sm tracking-wider font-bold">
-            WALLET DEMO
-          </Text>
-        </Pressable>
+          WALLET DEMO
+        </Button>
 
-        <Pressable
+        <Button
           onPress={() => router.push('/modal')}
-          className="bg-[#0080FF] border-4 border-white px-8 py-4 mb-4 shadow-[4px_4px_0px_#000000] active:shadow-none active:translate-x-1 active:translate-y-1"
+          variant="secondary"
+          className="mb-4 w-full"
         >
-          <Text className="text-white text-center uppercase text-sm tracking-wider font-bold">
-            SETTINGS
-          </Text>
-        </Pressable>
+          SETTINGS
+        </Button>
 
         {/* Reset Onboarding Button */}
-        <Pressable
+        <Button
           onPress={handleResetOnboarding}
-          className="bg-[#808080] border-4 border-white px-8 py-4 shadow-[4px_4px_0px_#000000] active:shadow-none active:translate-x-1 active:translate-y-1"
+          variant="ghost"
+          className="w-full"
         >
-          <Text className="text-white text-center uppercase text-sm tracking-wider font-bold">
-            🔄 RESET ONBOARDING
-          </Text>
-        </Pressable>
-      </View>
+          🔄 RESET ONBOARDING
+        </Button>
+      </Card>
 
       {/* Footer */}
-      <View className="mt-8 px-8">
-        <Text className="text-[#00FF80] text-center text-xs uppercase tracking-wide">
-          ✨ RETRO GAMING UI • POWERED BY NATIVEWIND ✨
-        </Text>
-      </View>
-    </View>
+      <ThemedView className="mt-8 px-8">
+        <ThemedText type="caption" className="text-mint text-center">
+          ✨ PEPPERCOIN DESIGN SYSTEM • POWERED BY NATIVEWIND ✨
+        </ThemedText>
+      </ThemedView>
+    </ThemedView>
   );
 }

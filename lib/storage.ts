@@ -17,6 +17,7 @@ export const STORAGE_KEYS = {
   WALLET_CONNECTED_AT: 'wallet:connected_at',
   USER_PREFERENCES: 'user:preferences',
   ONBOARDING_COMPLETED: 'onboarding:completed',
+  ONBOARDING_DISMISSED: 'onboarding:dismissed',
 } as const;
 
 /**

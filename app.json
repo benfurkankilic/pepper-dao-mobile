@@ -1,51 +1,51 @@
 {
   "expo": {
-    "name": "pepper-dao-mobile",
-    "slug": "pepper-dao-mobile",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "pepperdaomobile",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.furkankilic.pepper-dao-mobile"
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.furkankilic.pepperdaomobile"
+      "package": "com.furkankilic.pepperdaomobile",
+      "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png",
-      "bundler": "metro"
+    "experiments": {
+      "reactCompiler": true,
+      "typedRoutes": true
     },
+    "icon": "./assets/images/icon.png",
+    "ios": {
+      "bundleIdentifier": "com.furkankilic.pepper-dao-mobile",
+      "supportsTablet": true
+    },
+    "name": "pepper-dao-mobile",
+    "newArchEnabled": true,
+    "orientation": "portrait",
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
             "backgroundColor": "#000000"
-          }
+          },
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
         }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+    "scheme": "pepperdao",
+    "slug": "pepper-dao-mobile",
+    "userInterfaceStyle": "automatic",
+    "version": "1.0.0",
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/images/favicon.png",
+      "output": "static"
     }
   }
 }

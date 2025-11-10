@@ -1,53 +1,57 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Peppercoin Design System - Light Theme Colors
+ * Based on peppercoin.com design aesthetic
  */
 
-import { Platform } from 'react-native';
+// Brand Colors
+export const PEPPER_RED = '#E54545';
+export const FOREST_GREEN = '#1E4F3A';
+export const LEAF_GREEN = '#2E6B4E';
+export const MINT = '#8FD9A8';
+export const GOLD = '#FFC043';
+export const OFF_WHITE = '#FAFAF7';
+export const INK = '#11181C';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Surface Colors
+export const SURFACE = '#FFFFFF';
+export const SURFACE_ALT = '#F3F6F4';
+export const BORDER = '#1A2A22';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    // Text colors
+    text: INK,
+    textSecondary: FOREST_GREEN,
+    textMuted: LEAF_GREEN,
+    
+    // Background colors
+    background: OFF_WHITE,
+    surface: SURFACE,
+    surfaceAlt: SURFACE_ALT,
+    
+    // Brand colors
+    primary: PEPPER_RED,
+    secondary: FOREST_GREEN,
+    accent: GOLD,
+    mint: MINT,
+    
+    // UI colors
+    border: BORDER,
+    tint: PEPPER_RED,
+    icon: LEAF_GREEN,
+    tabIconDefault: LEAF_GREEN,
+    tabIconSelected: PEPPER_RED,
+    
+    // Link color
+    link: PEPPER_RED,
   },
   dark: {
+    // Keep dark mode structure for future use, but not actively used
     text: '#ECEDEE',
     background: '#151718',
-    tint: tintColorDark,
+    tint: '#fff',
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: '#fff',
   },
 };
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});

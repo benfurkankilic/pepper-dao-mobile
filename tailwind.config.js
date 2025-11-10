@@ -8,29 +8,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Retro gaming color palette
-        'retro-pink': '#FF006E',
-        'retro-blue': '#0080FF',
-        'retro-purple': '#8000FF',
-        'retro-green': '#00FF80',
-        'retro-yellow': '#FFD600',
-        'retro-cyan': '#00FFFF',
-        'retro-orange': '#FF6B00',
+        // Peppercoin brand colors
+        'pepper-red': '#E54545',
+        'forest': '#1E4F3A',
+        'forest-green': '#1E4F3A',
+        'leaf': '#2E6B4E',
+        'leaf-green': '#2E6B4E',
+        'mint': '#8FD9A8',
+        'gold': '#FFC043',
+        'off-white': '#FAFAF7',
+        'ink': '#11181C',
         
-        // Dark backgrounds
-        'retro-dark': '#0A0A0F',
-        'retro-dark-purple': '#1A0033',
-        'retro-navy': '#000033',
+        // Surface colors
+        'surface': '#FFFFFF',
+        'surface-alt': '#F3F6F4',
+        'border': '#1A2A22',
         
-        // Accent colors
-        'neon-pink': '#FF10F0',
-        'neon-blue': '#00D9FF',
-        'neon-green': '#39FF14',
+        // Semantic colors
+        'primary': '#E54545',
+        'secondary': '#1E4F3A',
+        'accent': '#FFC043',
       },
       fontFamily: {
-        // Pixel/bitmap fonts - these need to be loaded via expo-font
-        'pixel': ['PressStart2P', 'monospace'],
-        'retro': ['VT323', 'monospace'],
+        // Peppercoin custom fonts
+        'pixel': ['PPNeueBit-Bold', 'system-ui'],
+        'sans': ['PPMondwest-Regular', 'system-ui'],
       },
       boxShadow: {
         // Solid, pixel-perfect shadows for retro 3D effect
@@ -38,8 +40,6 @@ module.exports = {
         'retro-sm': '2px 2px 0px #000000',
         'retro-lg': '6px 6px 0px #000000',
         'retro-xl': '8px 8px 0px #000000',
-        'neon-pink': '0 0 10px #FF10F0, 0 0 20px #FF10F0',
-        'neon-blue': '0 0 10px #00D9FF, 0 0 20px #00D9FF',
       },
       borderWidth: {
         '3': '3px',

@@ -1,8 +1,9 @@
+import { useAccount } from '@reown/appkit-react-native';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useOnboardingContext } from '@/contexts/onboarding-context';
 
-import { WelcomeScreen } from './welcome-screen';
+import { WalletConnectionModal, useWalletConnectionModal } from './wallet-connection-modal';
 
 interface OnboardingGateProps {
   children: React.ReactNode;
@@ -10,10 +11,13 @@ interface OnboardingGateProps {
 
 /**
  * Onboarding Gate Component
- * Shows onboarding screen to new users, or app content to returning users
+ * Shows wallet connection modal to users who haven't connected,
+ * or app content to users who are connected or have dismissed the modal
  */
 export function OnboardingGate({ children }: OnboardingGateProps) {
-  const { shouldShowOnboarding, isLoading, completeOnboarding } = useOnboardingContext();
+  const { isLoading } = useOnboardingContext();
+  const { isConnected } = useAccount();
+  const { visible, handleDismiss } = useWalletConnectionModal(isConnected);
 
   // Show loading state while checking onboarding status
   if (isLoading) {
@@ -24,12 +28,11 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
     );
   }
 
-  // Show onboarding for new users
-  if (shouldShowOnboarding) {
-    return <WelcomeScreen onComplete={completeOnboarding} />;
-  }
-
-  // Show main app for returning users
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <WalletConnectionModal visible={visible} onDismiss={handleDismiss} />
+    </>
+  );
 }
 

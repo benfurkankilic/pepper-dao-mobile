@@ -1,3 +1,4 @@
+import { useAccount, useAppKit } from '@reown/appkit-react-native';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { CHILIZ_CHAIN_ID } from '@/config/chains';
@@ -50,17 +51,8 @@ function getInitialWalletState(): WalletState {
 }
 
 /**
- * Load wallet session from storage
- */
-function loadWalletSession(): WalletSession | null {
-  return StorageService.getObject<WalletSession>(STORAGE_KEYS.WALLET_SESSION) ?? null;
-}
-
-/**
  * Save wallet session to storage
- * Will be used when WalletConnect integration is complete
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function saveWalletSession(session: WalletSession): void {
   StorageService.setObject(STORAGE_KEYS.WALLET_SESSION, session);
 }
@@ -91,32 +83,55 @@ function getNetworkState(chainId: number | null): NetworkState {
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState<WalletState>(getInitialWalletState);
   const [error, setError] = useState<WalletError | null>(null);
+  
+  // Get AppKit state
+  const { open, disconnect: appKitDisconnect } = useAppKit();
+  const { address, chainId, isConnected } = useAccount();
 
-  // Load session on mount
+  // Sync AppKit state to wallet context
   useEffect(() => {
-    const session = loadWalletSession();
-    if (session && session.address) {
-      const networkState = getNetworkState(session.chainId);
-      setWallet({
-        ...session,
+    if (isConnected && address && chainId !== undefined) {
+      // Convert chainId to number if it's a string
+      const numericChainId = typeof chainId === 'string' ? parseInt(chainId, 10) : chainId;
+      const networkState = getNetworkState(numericChainId);
+      const walletAddress = address as `0x${string}`;
+      
+      const newWalletState: WalletState = {
+        address: walletAddress,
+        chainId: numericChainId,
+        providerType: 'reown',
+        connectedAt: Date.now(),
+        sessionExpiryMs: null,
         connectionState: 'connected',
         networkState,
         isConnected: true,
         isConnecting: false,
         isWrongNetwork: networkState === 'wrong_network',
+      };
+      
+      setWallet(newWalletState);
+      
+      // Save session metadata
+      saveWalletSession({
+        address: walletAddress,
+        chainId: numericChainId,
+        providerType: 'reown',
+        connectedAt: Date.now(),
+        sessionExpiryMs: null,
       });
       
-      // Track session restoration
-      if (session.chainId) {
-        telemetry.trackSessionRestored(session.chainId);
-      }
+      // Track connection
+      telemetry.trackWalletConnected('reown', numericChainId, walletAddress);
       
       // Track network mismatch if present
-      if (networkState === 'wrong_network' && session.chainId) {
-        telemetry.trackNetworkMismatchShown(session.chainId);
+      if (networkState === 'wrong_network') {
+        telemetry.trackNetworkMismatchShown(numericChainId);
       }
+    } else if (!isConnected) {
+      // User disconnected
+      setWallet(getInitialWalletState());
     }
-  }, []);
+  }, [address, chainId, isConnected]);
 
   /**
    * Check if a chain is supported
@@ -135,44 +150,31 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [wallet.address]);
 
   /**
-   * Connect wallet
-   * This is a placeholder - will be implemented with WalletConnect
+   * Connect wallet using Reown AppKit
    */
   const connect = useCallback(async (options?: ConnectOptions): Promise<void> => {
-    setWallet((prev) => ({
-      ...prev,
-      connectionState: 'connecting',
-      isConnecting: true,
-    }));
     setError(null);
-
+    
     try {
-      // TODO: Implement actual wallet connection logic
-      // This will be implemented in the next steps with WalletConnect
-
-      // Placeholder for demonstration
-      throw new Error('Wallet connection not yet implemented');
+      // Open AppKit modal for connection
+      open();
     } catch (err) {
       const walletError: WalletError = {
         code: 'UNKNOWN',
-        message: err instanceof Error ? err.message : 'Failed to connect wallet',
+        message: err instanceof Error ? err.message : 'Failed to open wallet connection',
         details: err,
       };
       setError(walletError);
-      setWallet((prev) => ({
-        ...prev,
-        connectionState: 'disconnected',
-        isConnecting: false,
-      }));
     }
-  }, []);
+  }, [open]);
 
   /**
    * Disconnect wallet
    */
   const disconnect = useCallback(async (): Promise<void> => {
     try {
-      // TODO: Disconnect from WalletConnect session
+      // Disconnect from AppKit
+      await appKitDisconnect();
 
       // Track disconnection
       telemetry.trackWalletDisconnected();
@@ -184,24 +186,19 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Failed to disconnect wallet:', err);
     }
-  }, []);
+  }, [appKitDisconnect]);
 
   /**
    * Switch to Chiliz network
-   * This is a placeholder - will prompt user to switch in their wallet
+   * User must switch manually in their wallet app
    */
   const switchToChiliz = useCallback(async (): Promise<void> => {
-    try {
-      // TODO: Implement chain switching logic
-      throw new Error('Chain switching not yet implemented');
-    } catch (err) {
-      const walletError: WalletError = {
-        code: 'UNSUPPORTED_METHOD',
-        message: 'Please manually switch to Chiliz network in your wallet',
-        details: err,
-      };
-      setError(walletError);
-    }
+    const walletError: WalletError = {
+      code: 'UNSUPPORTED_METHOD',
+      message: 'Please switch to Chiliz Chain (88888) in your wallet app',
+      details: null,
+    };
+    setError(walletError);
   }, []);
 
   const value: WalletContextValue = {
