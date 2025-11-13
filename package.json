@@ -53,6 +53,12 @@
     "react-native-worklets": "^0.6.1",
     "viem": "^2.38.6"
   },
+  "overrides": {
+    "valtio": "2.1.8"
+  },
+  "resolutions": {
+    "valtio": "2.1.8"
+  },
   "devDependencies": {
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",

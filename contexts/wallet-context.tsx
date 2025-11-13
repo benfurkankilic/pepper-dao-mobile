@@ -1,26 +1,27 @@
 import { useAccount, useAppKit } from '@reown/appkit-react-native';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
+import { clearAppKitStorage } from '@/config/appkit-storage';
 import { CHILIZ_CHAIN_ID } from '@/config/chains';
 import { STORAGE_KEYS, StorageService } from '@/lib/storage';
 import { telemetry } from '@/lib/telemetry';
-import type {
-  ConnectOptions,
-  NetworkState,
-  WalletError,
-  WalletSession,
-  WalletState
-} from '@/types/wallet';
+import type { ConnectOptions, WalletError } from '@/types/wallet';
 
 /**
  * Wallet Context Value
+ * Uses Reown's hooks as the source of truth for wallet state
  */
 interface WalletContextValue {
-  // State
-  wallet: WalletState;
+  // Connection State (from Reown's useAccount)
+  address: string | undefined;
+  chainId: number | string | undefined;
+  isConnected: boolean;
+  
+  // Computed State
+  isWrongNetwork: boolean;
   error: WalletError | null;
 
-  // Actions
+  // Actions (from Reown's useAppKit)
   connect: (options?: ConnectOptions) => Promise<void>;
   disconnect: () => Promise<void>;
   switchToChiliz: () => Promise<void>;
@@ -31,31 +32,6 @@ interface WalletContextValue {
 }
 
 const WalletContext = createContext<WalletContextValue | undefined>(undefined);
-
-/**
- * Initial wallet state
- */
-function getInitialWalletState(): WalletState {
-  return {
-    address: null,
-    chainId: null,
-    providerType: null,
-    connectedAt: null,
-    sessionExpiryMs: null,
-    connectionState: 'disconnected',
-    networkState: 'correct',
-    isConnected: false,
-    isConnecting: false,
-    isWrongNetwork: false,
-  };
-}
-
-/**
- * Save wallet session to storage
- */
-function saveWalletSession(session: WalletSession): void {
-  StorageService.setObject(STORAGE_KEYS.WALLET_SESSION, session);
-}
 
 /**
  * Clear wallet session from storage
@@ -69,69 +45,58 @@ function clearWalletSession(): void {
 }
 
 /**
- * Determine network state based on chainId
- */
-function getNetworkState(chainId: number | null): NetworkState {
-  if (chainId === null) return 'correct';
-  if (chainId === CHILIZ_CHAIN_ID) return 'correct';
-  return 'wrong_network';
-}
-
-/**
  * Wallet Provider Component
+ * Uses Reown's hooks as the single source of truth for wallet state
  */
 export function WalletProvider({ children }: { children: React.ReactNode }) {
-  const [wallet, setWallet] = useState<WalletState>(getInitialWalletState);
   const [error, setError] = useState<WalletError | null>(null);
   
-  // Get AppKit state
+  // Use Reown's hooks for wallet state (single source of truth)
   const { open, disconnect: appKitDisconnect } = useAppKit();
   const { address, chainId, isConnected } = useAccount();
 
-  // Sync AppKit state to wallet context
+  // Clean up stale sessions on mount
+  useEffect(() => {
+    async function validateSession() {
+      try {
+        const storedSession = StorageService.getObject(STORAGE_KEYS.WALLET_SESSION);
+        if (storedSession && !isConnected) {
+          console.log('Clearing stale wallet session from storage');
+          clearWalletSession();
+          await clearAppKitStorage();
+        }
+      } catch (err) {
+        console.error('Failed to validate session:', err);
+        clearWalletSession();
+        await clearAppKitStorage();
+      }
+    }
+    validateSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
+
+  // Track connection state changes for telemetry
   useEffect(() => {
     if (isConnected && address && chainId !== undefined) {
-      // Convert chainId to number if it's a string
       const numericChainId = typeof chainId === 'string' ? parseInt(chainId, 10) : chainId;
-      const networkState = getNetworkState(numericChainId);
-      const walletAddress = address as `0x${string}`;
-      
-      const newWalletState: WalletState = {
-        address: walletAddress,
-        chainId: numericChainId,
-        providerType: 'reown',
-        connectedAt: Date.now(),
-        sessionExpiryMs: null,
-        connectionState: 'connected',
-        networkState,
-        isConnected: true,
-        isConnecting: false,
-        isWrongNetwork: networkState === 'wrong_network',
-      };
-      
-      setWallet(newWalletState);
-      
-      // Save session metadata
-      saveWalletSession({
-        address: walletAddress,
-        chainId: numericChainId,
-        providerType: 'reown',
-        connectedAt: Date.now(),
-        sessionExpiryMs: null,
-      });
       
       // Track connection
-      telemetry.trackWalletConnected('reown', numericChainId, walletAddress);
+      telemetry.trackWalletConnected('reown', numericChainId, address);
       
       // Track network mismatch if present
-      if (networkState === 'wrong_network') {
+      if (numericChainId !== CHILIZ_CHAIN_ID) {
         telemetry.trackNetworkMismatchShown(numericChainId);
       }
     } else if (!isConnected) {
-      // User disconnected
-      setWallet(getInitialWalletState());
+      // Clear session on disconnect
+      clearWalletSession();
     }
   }, [address, chainId, isConnected]);
+  
+  // Compute if user is on wrong network
+  const isWrongNetwork = isConnected && chainId !== undefined 
+    ? (typeof chainId === 'string' ? parseInt(chainId, 10) : chainId) !== CHILIZ_CHAIN_ID
+    : false;
 
   /**
    * Check if a chain is supported
@@ -144,10 +109,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
    * Get shortened address for display
    */
   const getShortAddress = useCallback((): string | null => {
-    if (!wallet.address) return null;
-    const addr = wallet.address;
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  }, [wallet.address]);
+    if (!address) return null;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }, [address]);
 
   /**
    * Connect wallet using Reown AppKit
@@ -157,14 +121,23 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     
     try {
       // Open AppKit modal for connection
+      // Note: Storage clearing is handled in useEffect on mount for stale sessions
+      // and on disconnect. Do NOT clear storage here as it creates race conditions
+      // with the AppKit initialization.
       open();
     } catch (err) {
+      console.error('Connection error:', err);
+      
       const walletError: WalletError = {
         code: 'UNKNOWN',
         message: err instanceof Error ? err.message : 'Failed to open wallet connection',
         details: err,
       };
       setError(walletError);
+      
+      // Clear potentially corrupted state only on error
+      await clearAppKitStorage();
+      clearWalletSession();
     }
   }, [open]);
 
@@ -181,10 +154,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
       // Clear state and storage
       clearWalletSession();
-      setWallet(getInitialWalletState());
+      await clearAppKitStorage();
       setError(null);
     } catch (err) {
       console.error('Failed to disconnect wallet:', err);
+      
+      // Even if disconnect fails, clear local state
+      clearWalletSession();
+      await clearAppKitStorage();
     }
   }, [appKitDisconnect]);
 
@@ -202,11 +179,21 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value: WalletContextValue = {
-    wallet,
+    // Reown state (single source of truth)
+    address,
+    chainId,
+    isConnected,
+    
+    // Computed state
+    isWrongNetwork,
     error,
+    
+    // Actions
     connect,
     disconnect,
     switchToChiliz,
+    
+    // Utilities
     isChainSupported,
     getShortAddress,
   };

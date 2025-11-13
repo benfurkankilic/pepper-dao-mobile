@@ -27,7 +27,9 @@ export const TELEMETRY_EVENTS = {
   
   // Onboarding events
   ONBOARDING_STARTED: 'onboarding_started',
+  ONBOARDING_STEP_VIEWED: 'onboarding_step_viewed',
   ONBOARDING_COMPLETED: 'onboarding_completed',
+  ONBOARDING_SKIPPED: 'onboarding_skipped',
   ONBOARDING_RESET: 'onboarding_reset',
 } as const;
 

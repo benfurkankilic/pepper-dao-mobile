@@ -12,7 +12,7 @@ import { EthersAdapter } from '@reown/appkit-ethers-react-native';
 import { createAppKit, type AppKitNetwork } from '@reown/appkit-react-native';
 
 import { appKitStorage } from './appkit-storage';
-import { CHILIZ_CHAIN_ID, chiliz } from './chains';
+import { CHILIZ_CHAIN_ID } from './chains';
 
 /**
  * Get Project ID from environment
@@ -43,14 +43,27 @@ const metadata = {
 
 /**
  * Define Chiliz network for AppKit
- * AppKit expects networks in AppKitNetwork format
+ * AppKit expects networks in AppKitNetwork format with specific structure
  */
 const chilizNetwork: AppKitNetwork = {
   id: CHILIZ_CHAIN_ID,
-  name: chiliz.name,
-  nativeCurrency: chiliz.nativeCurrency,
-  rpcUrls: chiliz.rpcUrls,
-  blockExplorers: chiliz.blockExplorers,
+  name: 'Chiliz Chain',
+  nativeCurrency: {
+    name: 'Chiliz',
+    symbol: 'CHZ',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.ankr.com/chiliz'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Chiliz Explorer',
+      url: 'https://explorer.chiliz.com',
+    },
+  },
   chainNamespace: 'eip155',
   caipNetworkId: `eip155:${CHILIZ_CHAIN_ID}`,
   testnet: false,
@@ -60,11 +73,13 @@ const chilizNetwork: AppKitNetwork = {
  * Initialize Ethers adapter for EVM chains
  */
 const ethersAdapter = new EthersAdapter();
-console.log('projectId', projectId);
-console.log('metadata', metadata);
-console.log('chilizNetwork', chilizNetwork);
-console.log('ethersAdapter', ethersAdapter);
-console.log('appKitStorage', appKitStorage);
+
+// Debug logging
+console.log('AppKit Configuration:');
+console.log('- projectId:', projectId);
+console.log('- chainId:', CHILIZ_CHAIN_ID);
+console.log('- caipNetworkId:', `eip155:${CHILIZ_CHAIN_ID}`);
+console.log('- network:', chilizNetwork.name);
 
 /**
  * Create and configure AppKit instance
@@ -77,7 +92,7 @@ export const appKit = createAppKit({
   defaultNetwork: chilizNetwork,
   adapters: [ethersAdapter],
   storage: appKitStorage,
-  enableAnalytics: true,
+  enableAnalytics: false, // Disable analytics to reduce initialization complexity
   features: {
     swaps: false,
     onramp: false,

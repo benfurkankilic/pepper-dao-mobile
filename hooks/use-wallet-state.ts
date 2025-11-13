@@ -7,7 +7,7 @@ import { useWallet } from '@/contexts/wallet-context';
  * Provides computed values and utilities for wallet state
  */
 export function useWalletState() {
-  const { wallet, getShortAddress, isChainSupported } = useWallet();
+  const { address, chainId, isConnected, isWrongNetwork, getShortAddress, isChainSupported } = useWallet();
 
   /**
    * Get display-friendly wallet address
@@ -20,50 +20,47 @@ export function useWalletState() {
    * Check if wallet is connected and on correct network
    */
   const isReady = useMemo(() => {
-    return wallet.isConnected && !wallet.isWrongNetwork;
-  }, [wallet.isConnected, wallet.isWrongNetwork]);
+    return isConnected && !isWrongNetwork;
+  }, [isConnected, isWrongNetwork]);
 
   /**
    * Get user-friendly connection status message
    */
   const statusMessage = useMemo(() => {
-    if (wallet.isConnecting) return 'Connecting...';
-    if (!wallet.isConnected) return 'Not connected';
-    if (wallet.isWrongNetwork) return 'Wrong network';
+    if (!isConnected) return 'Not connected';
+    if (isWrongNetwork) return 'Wrong network';
     return 'Connected';
-  }, [wallet.isConnecting, wallet.isConnected, wallet.isWrongNetwork]);
+  }, [isConnected, isWrongNetwork]);
 
   /**
    * Get status color for UI
    */
   const statusColor = useMemo(() => {
-    if (wallet.isConnecting) return 'yellow';
-    if (!wallet.isConnected) return 'gray';
-    if (wallet.isWrongNetwork) return 'red';
+    if (!isConnected) return 'gray';
+    if (isWrongNetwork) return 'red';
     return 'green';
-  }, [wallet.isConnecting, wallet.isConnected, wallet.isWrongNetwork]);
+  }, [isConnected, isWrongNetwork]);
 
   /**
    * Check if user can perform transactions
    */
   const canTransact = useMemo(() => {
-    return isReady && wallet.address !== null;
-  }, [isReady, wallet.address]);
+    return isReady && address !== undefined;
+  }, [isReady, address]);
 
   return {
-    // Raw state
-    address: wallet.address,
-    chainId: wallet.chainId,
-    providerType: wallet.providerType,
+    // Raw state (from Reown)
+    address,
+    chainId,
     
     // Connection status
-    isConnected: wallet.isConnected,
-    isConnecting: wallet.isConnecting,
-    isDisconnected: !wallet.isConnected && !wallet.isConnecting,
+    isConnected,
+    isConnecting: false, // Reown manages this internally
+    isDisconnected: !isConnected,
     
     // Network status
-    isWrongNetwork: wallet.isWrongNetwork,
-    isCorrectNetwork: wallet.networkState === 'correct',
+    isWrongNetwork,
+    isCorrectNetwork: !isWrongNetwork,
     
     // Computed values
     displayAddress,

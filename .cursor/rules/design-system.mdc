@@ -12,10 +12,11 @@ globs: **/*.tsx,**/components/**/*.ts,**/constants/**/*.ts
 ## Color Palette
 - **Primary Colors**: Bright, saturated colors (hot pink, electric blue, neon green, vibrant purple)
 - **Secondary Colors**: Complementary accent colors for highlights and CTAs
-- **Background**: Deep, dark backgrounds (black, dark purple, navy) to make colors pop
-- **Text**: High contrast white or bright colors on dark backgrounds
-- **Borders**: Bold, solid colors (often white or bright accent colors)
+- **Background**: Light, clean backgrounds (white, light gray, cream) for readability and modern feel
+- **Text**: High contrast dark text on light backgrounds (black, dark gray)
+- **Borders**: Bold, solid colors (often black or dark accent colors)
 - Use color blocks rather than gradients for that authentic pixel art feel
+- **Dark accents**: Use dark colors for borders and shadows to create depth on light backgrounds
 
 ## Typography
 - **Primary Font**: Pixel/bitmap font (e.g., Press Start 2P, VT323, or similar retro gaming fonts)
@@ -112,12 +113,12 @@ globs: **/*.tsx,**/components/**/*.ts,**/constants/**/*.ts
 ```typescript
 import { Pressable, Text } from 'react-native';
 
-// Using NativeWind utility classes
+// Using NativeWind utility classes for light mode
 function RetroButton({ children, onPress }) {
   return (
     <Pressable
       onPress={onPress}
-      className="bg-[#FF006E] border-4 border-white px-8 py-4 shadow-[4px_4px_0px_#000000] active:shadow-none active:translate-x-1 active:translate-y-1"
+      className="bg-[#FF006E] border-4 border-black px-8 py-4 shadow-[4px_4px_0px_#000000] active:shadow-none active:translate-x-1 active:translate-y-1"
     >
       <Text className="font-pixel text-sm text-white uppercase tracking-wider">
         {children}

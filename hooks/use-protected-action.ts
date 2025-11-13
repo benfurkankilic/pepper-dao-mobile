@@ -21,7 +21,7 @@ export class ProtectedActionError extends Error {
  * Enforces chain guard before allowing transactions
  */
 export function useProtectedAction() {
-  const { wallet } = useWallet();
+  const { address, isConnected, isWrongNetwork } = useWallet();
 
   /**
    * Execute a protected action (transaction, signature, etc.)
@@ -29,16 +29,8 @@ export function useProtectedAction() {
    */
   const executeProtected = useCallback(
     async <T>(action: () => Promise<T>): Promise<T> => {
-      // Check if connecting
-      if (wallet.isConnecting) {
-        throw new ProtectedActionError(
-          'Wallet is connecting. Please wait.',
-          'CONNECTING',
-        );
-      }
-
       // Check if connected
-      if (!wallet.isConnected || !wallet.address) {
+      if (!isConnected || !address) {
         throw new ProtectedActionError(
           'Please connect your wallet to continue.',
           'NOT_CONNECTED',
@@ -46,7 +38,7 @@ export function useProtectedAction() {
       }
 
       // Chain guard: Check if on correct network
-      if (wallet.isWrongNetwork) {
+      if (isWrongNetwork) {
         throw new ProtectedActionError(
           'Please switch to Chiliz network to continue.',
           'WRONG_NETWORK',
@@ -56,7 +48,7 @@ export function useProtectedAction() {
       // Execute the protected action
       return await action();
     },
-    [wallet],
+    [isConnected, address, isWrongNetwork],
   );
 
   /**
@@ -64,25 +56,21 @@ export function useProtectedAction() {
    * Returns error message if not ready, null if ready
    */
   const canExecute = useCallback((): string | null => {
-    if (wallet.isConnecting) {
-      return 'Wallet is connecting. Please wait.';
-    }
-
-    if (!wallet.isConnected || !wallet.address) {
+    if (!isConnected || !address) {
       return 'Please connect your wallet to continue.';
     }
 
-    if (wallet.isWrongNetwork) {
+    if (isWrongNetwork) {
       return 'Please switch to Chiliz network to continue.';
     }
 
     return null;
-  }, [wallet]);
+  }, [isConnected, address, isWrongNetwork]);
 
   return {
     executeProtected,
     canExecute,
-    isReady: wallet.isConnected && !wallet.isWrongNetwork,
+    isReady: isConnected && !isWrongNetwork,
   };
 }
 

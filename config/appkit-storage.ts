@@ -72,3 +72,30 @@ export const appKitStorage: Storage = {
   },
 };
 
+/**
+ * Utility function to clear all AppKit-related storage
+ * Useful for cleaning up stale sessions
+ */
+export async function clearAppKitStorage(): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    
+    // Filter for WalletConnect and AppKit related keys
+    const wcKeys = keys.filter(
+      (key) =>
+        key.startsWith('wc@2:') ||
+        key.startsWith('WALLETCONNECT_') ||
+        key.startsWith('WC_') ||
+        key.includes('walletconnect') ||
+        key.includes('reown')
+    );
+    
+    if (wcKeys.length > 0) {
+      console.log(`Clearing ${wcKeys.length} AppKit storage keys`);
+      await AsyncStorage.multiRemove(wcKeys);
+    }
+  } catch (error) {
+    console.error('Failed to clear AppKit storage:', error);
+  }
+}
+

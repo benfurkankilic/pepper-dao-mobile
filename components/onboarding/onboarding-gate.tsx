@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { useOnboardingContext } from '@/contexts/onboarding-context';
 
+import { OnboardingWizard } from './onboarding-wizard';
 import { WalletConnectionModal, useWalletConnectionModal } from './wallet-connection-modal';
 
 interface OnboardingGateProps {
@@ -11,23 +12,35 @@ interface OnboardingGateProps {
 
 /**
  * Onboarding Gate Component
- * Shows wallet connection modal to users who haven't connected,
- * or app content to users who are connected or have dismissed the modal
+ * Shows onboarding wizard for first-time users,
+ * then wallet connection modal for connection,
+ * or app content for users who have completed onboarding
  */
 export function OnboardingGate({ children }: OnboardingGateProps) {
-  const { isLoading } = useOnboardingContext();
+  const { isLoading, shouldShowOnboarding, hasCompletedOnboarding, completeOnboarding } = useOnboardingContext();
   const { isConnected } = useAccount();
-  const { visible, handleDismiss } = useWalletConnectionModal(isConnected);
+  const { visible, handleDismiss } = useWalletConnectionModal(isConnected, hasCompletedOnboarding);
 
   // Show loading state while checking onboarding status
   if (isLoading) {
     return (
-      <View className="flex-1 bg-black items-center justify-center">
-        <ActivityIndicator size="large" color="#00FF80" />
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#FF006E" />
       </View>
     );
   }
 
+  // Show onboarding wizard if not completed
+  if (shouldShowOnboarding) {
+    return (
+      <OnboardingWizard
+        onComplete={() => completeOnboarding('explore')}
+        onSkip={() => completeOnboarding('explore')}
+      />
+    );
+  }
+
+  // Show app content with wallet modal overlay
   return (
     <>
       {children}

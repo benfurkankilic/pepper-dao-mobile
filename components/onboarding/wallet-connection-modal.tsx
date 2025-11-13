@@ -1,8 +1,8 @@
 import { useAppKit } from '@reown/appkit-react-native';
-import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Text, View } from 'react-native';
 
+import { Button } from '@/components/ui/button';
 import { STORAGE_KEYS, StorageService } from '@/lib/storage';
 import { telemetry } from '@/lib/telemetry';
 
@@ -22,11 +22,8 @@ interface WalletConnectionModalProps {
 export function WalletConnectionModal({ visible, onDismiss }: WalletConnectionModalProps) {
   const { open } = useAppKit();
 
-  async function handleConnectPress() {
+  function handleConnectPress() {
     try {
-      // Trigger haptic feedback
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      
       // Track telemetry
       telemetry.trackWalletConnectOpened('reown');
       
@@ -37,11 +34,8 @@ export function WalletConnectionModal({ visible, onDismiss }: WalletConnectionMo
     }
   }
 
-  async function handleExplorePress() {
+  function handleExplorePress() {
     try {
-      // Trigger haptic feedback
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      
       // Mark onboarding as dismissed
       StorageService.setBoolean(STORAGE_KEYS.ONBOARDING_DISMISSED, true);
       
@@ -61,38 +55,35 @@ export function WalletConnectionModal({ visible, onDismiss }: WalletConnectionMo
     >
       <View className="flex-1 items-center justify-center bg-black/80 px-6">
         {/* Modal Card */}
-        <View className="w-full max-w-md border-4 border-white bg-[#1a0033] p-8 shadow-[8px_8px_0px_#000000]">
+        <View className="w-full max-w-md border-4 border-black bg-white p-8 shadow-[8px_8px_0px_#000000]">
           {/* Title */}
           <Text className="mb-4 text-center font-['PPNeueBit-Bold'] text-2xl uppercase tracking-wider text-[#FF006E]">
             Connect Wallet
           </Text>
           
           {/* Description */}
-          <Text className="mb-8 text-center font-['PPMondwest-Regular'] text-sm leading-6 text-white">
+          <Text className="mb-8 text-center font-['PPMondwest-Regular'] text-sm leading-6 text-gray-800">
             Connect your wallet to participate in governance, staking, and earn rewards.
             {'\n\n'}
             Or explore without connecting in read-only mode.
           </Text>
 
           {/* Connect Button */}
-          <Pressable
+          <Button
             onPress={handleConnectPress}
-            className="mb-4 border-4 border-white bg-[#FF006E] px-6 py-4 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+            variant="primary"
+            className="mb-4"
           >
-            <Text className="text-center font-['PPNeueBit-Bold'] text-base uppercase tracking-wider text-white">
-              Connect Wallet
-            </Text>
-          </Pressable>
+            Connect Wallet
+          </Button>
 
           {/* Explore Button */}
-          <Pressable
+          <Button
             onPress={handleExplorePress}
-            className="border-4 border-white bg-transparent px-6 py-4 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+            variant="secondary"
           >
-            <Text className="text-center font-['PPNeueBit-Bold'] text-base uppercase tracking-wider text-white">
-              Explore Without Connecting
-            </Text>
-          </Pressable>
+            Explore Without Connecting
+          </Button>
         </View>
       </View>
     </Modal>
@@ -103,25 +94,28 @@ export function WalletConnectionModal({ visible, onDismiss }: WalletConnectionMo
  * useWalletConnectionModal
  * 
  * Hook to manage wallet connection modal visibility
- * Shows modal on app start if user is not connected and hasn't dismissed it
+ * Shows modal only after onboarding is completed,
+ * if user is not connected and hasn't dismissed it
  */
-export function useWalletConnectionModal(isConnected: boolean) {
+export function useWalletConnectionModal(isConnected: boolean, hasCompletedOnboarding: boolean) {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    function checkOnboardingStatus() {
+    function checkModalVisibility() {
       const isDismissed = StorageService.getBoolean(STORAGE_KEYS.ONBOARDING_DISMISSED) || false;
       setDismissed(isDismissed);
 
-      // Show modal if not connected and not dismissed
-      if (!isConnected && !isDismissed) {
+      // Show modal if onboarding completed, not connected, and not dismissed
+      if (hasCompletedOnboarding && !isConnected && !isDismissed) {
         setVisible(true);
+      } else {
+        setVisible(false);
       }
     }
 
-    checkOnboardingStatus();
-  }, [isConnected]);
+    checkModalVisibility();
+  }, [isConnected, hasCompletedOnboarding]);
 
   // Hide modal when user connects
   useEffect(() => {

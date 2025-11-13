@@ -7,7 +7,7 @@ import { useWallet } from '@/contexts/wallet-context';
  * Provides convenient methods for common wallet operations
  */
 export function useWalletActions() {
-  const { connect, disconnect, switchToChiliz, wallet, error } = useWallet();
+  const { connect, disconnect, switchToChiliz, isWrongNetwork, error } = useWallet();
 
   /**
    * Connect wallet with error handling
@@ -37,7 +37,7 @@ export function useWalletActions() {
    * Handle network mismatch by prompting user to switch
    */
   const handleNetworkMismatch = useCallback(async () => {
-    if (!wallet.isWrongNetwork) return;
+    if (!isWrongNetwork) return;
     
     try {
       await switchToChiliz();
@@ -45,13 +45,13 @@ export function useWalletActions() {
       console.error('Failed to switch network:', err);
       throw err;
     }
-  }, [wallet.isWrongNetwork, switchToChiliz]);
+  }, [isWrongNetwork, switchToChiliz]);
 
   return {
     connectWallet,
     disconnectWallet,
     handleNetworkMismatch,
-    isLoading: wallet.isConnecting,
+    isLoading: false, // Reown manages loading state internally
     error,
   };
 }

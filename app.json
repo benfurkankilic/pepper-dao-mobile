@@ -8,7 +8,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.furkankilic.pepperdaomobile",
+      "package": "com.chiliz.pepperdao",
       "predictiveBackGestureEnabled": false
     },
     "experiments": {
@@ -17,8 +17,9 @@
     },
     "icon": "./assets/images/icon.png",
     "ios": {
-      "bundleIdentifier": "com.furkankilic.pepper-dao-mobile",
-      "supportsTablet": true
+      "bundleIdentifier": "com.chiliz.pepperdao",
+      "supportsTablet": false,
+      "appleTeamId": "RBP7PE82SN"
     },
     "name": "pepper-dao-mobile",
     "newArchEnabled": true,
