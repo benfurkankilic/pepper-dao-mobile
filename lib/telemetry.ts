@@ -20,17 +20,22 @@ export const TELEMETRY_EVENTS = {
   NETWORK_SWITCH_ATTEMPTED: 'network_switch_attempted',
   NETWORK_SWITCH_SUCCESS: 'network_switch_success',
   NETWORK_SWITCH_FAILED: 'network_switch_failed',
-  
+
   // Session events
   SESSION_RESTORED: 'session_restored',
   SESSION_EXPIRED: 'session_expired',
-  
+
   // Onboarding events
   ONBOARDING_STARTED: 'onboarding_started',
   ONBOARDING_STEP_VIEWED: 'onboarding_step_viewed',
   ONBOARDING_COMPLETED: 'onboarding_completed',
   ONBOARDING_SKIPPED: 'onboarding_skipped',
   ONBOARDING_RESET: 'onboarding_reset',
+  
+  // Pepper dashboard events
+  PEPPER_DASHBOARD_VIEWED: 'pepper_dashboard_viewed',
+  PEPPER_METRICS_REFRESHED: 'pepper_metrics_refreshed',
+  PEPPER_METRICS_ERROR: 'pepper_metrics_error',
 } as const;
 
 /**
@@ -57,11 +62,21 @@ interface WalletConnectionFailedProps {
   errorCode?: string;
 }
 
+interface PepperMetricsRefreshedProps {
+  updatedAt: string;
+}
+
+interface PepperMetricsErrorProps {
+  message: string;
+}
+
 type TelemetryEventProps =
   | WalletConnectOpenedProps
   | WalletConnectedProps
   | NetworkMismatchShownProps
   | WalletConnectionFailedProps
+  | PepperMetricsRefreshedProps
+  | PepperMetricsErrorProps
   | Record<string, unknown>;
 
 /**
@@ -187,6 +202,31 @@ class TelemetryService {
   trackSessionExpired(reason: string): void {
     this.track(TELEMETRY_EVENTS.SESSION_EXPIRED, {
       reason,
+    });
+  }
+
+  /**
+   * Track when the Pepper dashboard is viewed.
+   */
+  trackPepperDashboardViewed(): void {
+    this.track(TELEMETRY_EVENTS.PEPPER_DASHBOARD_VIEWED);
+  }
+
+  /**
+   * Track successful Pepper metrics refresh.
+   */
+  trackPepperMetricsRefreshed(updatedAt: string): void {
+    this.track(TELEMETRY_EVENTS.PEPPER_METRICS_REFRESHED, {
+      updatedAt,
+    });
+  }
+
+  /**
+   * Track Pepper metrics errors.
+   */
+  trackPepperMetricsError(message: string): void {
+    this.track(TELEMETRY_EVENTS.PEPPER_METRICS_ERROR, {
+      message,
     });
   }
 

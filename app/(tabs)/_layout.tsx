@@ -1,33 +1,47 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Icon, Label, NativeTabs, VectorIcon } from 'expo-router/unstable-native-tabs';
+
 import { Colors } from '@/constants/theme';
 
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors.light.primary,
-        tabBarInactiveTintColor: Colors.light.tabIconDefault,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <NativeTabs
+      minimizeBehavior="onScrollDown"
+      tintColor={Colors.light.secondary}
+      labelStyle={{ color: Colors.light.text }}>
+      <NativeTabs.Trigger name="index">
+        {Platform.select({
+          ios: <Icon sf={{ default: 'house', selected: 'house.fill' }} />,
+          android: <Icon src={<VectorIcon family={MaterialIcons} name="home" />} />,
+          default: <Icon src={<VectorIcon family={MaterialIcons} name="home" />} />,
+        })}
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="wallet">
+        {Platform.select({
+          ios: <Icon sf={{ default: 'creditcard', selected: 'creditcard.fill' }} />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialIcons} name="account-balance-wallet" />} />
+          ),
+          default: (
+            <Icon src={<VectorIcon family={MaterialIcons} name="account-balance-wallet" />} />
+          ),
+        })}
+        <Label>Wallet</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="explore">
+        {Platform.select({
+          ios: <Icon sf={{ default: 'paperplane', selected: 'paperplane.fill' }} />,
+          android: <Icon src={<VectorIcon family={MaterialIcons} name="send" />} />,
+          default: <Icon src={<VectorIcon family={MaterialIcons} name="send" />} />,
+        })}
+        <Label>Explore</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
