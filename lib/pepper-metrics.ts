@@ -87,6 +87,36 @@ export function formatTimeSince(timestamp: string): string {
   return `${diffDays}d`;
 }
 
+export function formatTimeAgoFromSeconds(timestampSeconds: number): string {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const diffSeconds = Math.max(0, nowSeconds - timestampSeconds);
+
+  if (diffSeconds < 60) {
+    const seconds = diffSeconds;
+    const label = seconds === 1 ? 'second' : 'seconds';
+    return `${seconds} ${label} ago`;
+  }
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+
+  if (diffMinutes < 60) {
+    const label = diffMinutes === 1 ? 'minute' : 'minutes';
+    return `${diffMinutes} ${label} ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    const label = diffHours === 1 ? 'hour' : 'hours';
+    return `${diffHours} ${label} ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+  const label = diffDays === 1 ? 'day' : 'days';
+
+  return `${diffDays} ${label} ago`;
+}
+
 function bigIntPow10(decimals: number): bigint {
   if (decimals <= 0) {
     return BigInt(1);

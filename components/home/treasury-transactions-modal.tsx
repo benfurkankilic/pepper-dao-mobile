@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -12,7 +12,10 @@ import { ThemedText } from '@/components/themed-text';
 import { DANGER_RED, SUCCESS_GREEN } from '@/constants/theme';
 import { useTreasuryChzTransactions } from '@/hooks/use-treasury-chz-transactions';
 import { copyToClipboard } from '@/lib/clipboard';
-import { formatPepperAmount } from '@/lib/pepper-metrics';
+import {
+  formatPepperAmount,
+  formatTimeAgoFromSeconds,
+} from '@/lib/pepper-metrics';
 import { TreasuryChzTx } from '@/services/chiliz-api';
 
 type TreasuryWindow = '24h' | '7d' | '30d' | '365d' | 'all';
@@ -35,9 +38,21 @@ export function TreasuryTransactionsModal({
     visible,
   );
 
-  function handleCopy(address: string): void {
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
+
+  async function handleCopy(address: string): Promise<void> {
     try {
-      void copyToClipboard(address);
+      await copyToClipboard(address);
+      setCopiedMessage('Address copied');
+
+      if (toastTimeoutRef.current !== null) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+
+      toastTimeoutRef.current = setTimeout(() => {
+        setCopiedMessage(null);
+      }, 2000);
     } catch (error) {
       console.warn('[TreasuryTransactionsModal] Failed to copy address', error);
     }
@@ -92,6 +107,14 @@ export function TreasuryTransactionsModal({
             ))}
           </View>
 
+          {copiedMessage ? (
+            <View className="mb-2 items-center">
+              <ThemedText type="caption" className="text-xs">
+                {copiedMessage}
+              </ThemedText>
+            </View>
+          ) : null}
+
           {isLoading ? (
             <ThemedText type="body">
               Loading transactions...
@@ -107,6 +130,7 @@ export function TreasuryTransactionsModal({
           ) : (
             <FlashList
               data={transactions}
+              showsVerticalScrollIndicator={false}
               keyExtractor={(tx: TreasuryChzTx) => tx.hash}
               renderItem={({ item: tx }: { item: TreasuryChzTx }) => {
                 const shortFrom = `${tx.from.slice(0, 6)}...${tx.from.slice(-4)}`;
@@ -121,40 +145,58 @@ export function TreasuryTransactionsModal({
                       <ThemedText
                         type="caption"
                         lightColor={tx.direction === 'in' ? SUCCESS_GREEN : DANGER_RED}
+                        style={{ fontWeight: '600' }}
                       >
                         {`${formatPepperAmount(tx.value, 18)} CHZ`}
                       </ThemedText>
                     </View>
                     <View className="mt-1 flex-row items-center justify-between gap-2">
-                      <View className="flex-row items-center gap-1">
+                      <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center gap-1">
+                          <ThemedText type="caption" className="text-xs">
+                            {shortFrom}
+                          </ThemedText>
+                          <Pressable
+                            onPress={() => {
+                              void handleCopy(tx.from);
+                            }}
+                            className="px-1"
+                          >
+                            <MaterialIcons
+                              name="content-copy"
+                              size={14}
+                            color="#6B7280"
+                            />
+                          </Pressable>
+                        </View>
                         <ThemedText type="caption" className="text-xs">
-                          {shortFrom} → {shortTo}
+                          →
                         </ThemedText>
-                        <Pressable
-                          onPress={() => {
-                            handleCopy(tx.from);
-                          }}
-                          className="px-1"
-                        >
-                          <MaterialIcons
-                            name="content-copy"
-                            size={14}
-                            color="#000000"
-                          />
-                        </Pressable>
-                        <Pressable
-                          onPress={() => {
-                            handleCopy(tx.to);
-                          }}
-                          className="px-1"
-                        >
-                          <MaterialIcons
-                            name="content-copy"
-                            size={14}
-                            color="#000000"
-                          />
-                        </Pressable>
+                        <View className="flex-row items-center gap-1">
+                          <ThemedText type="caption" className="text-xs">
+                            {shortTo}
+                          </ThemedText>
+                          <Pressable
+                            onPress={() => {
+                              void handleCopy(tx.to);
+                            }}
+                            className="px-1"
+                          >
+                            <MaterialIcons
+                              name="content-copy"
+                              size={14}
+                              color="#6B7280"
+                            />
+                          </Pressable>
+                        </View>
                       </View>
+                      <ThemedText
+                        type="caption"
+                        lightColor="#6B7280"
+                        className="text-[10px]"
+                      >
+                        {formatTimeAgoFromSeconds(tx.timestamp)}
+                      </ThemedText>
                     </View>
                   </View>
                 );
