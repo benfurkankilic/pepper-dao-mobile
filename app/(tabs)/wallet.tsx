@@ -1,99 +1,193 @@
-import { router } from 'expo-router';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { FOREST_GREEN, INK } from '@/constants/theme';
-import { useOnboardingContext } from '@/contexts/onboarding-context';
-import { useWalletState } from '@/hooks/use-wallet-state';
+import {
+  NetworkMismatchWarning,
+  WalletConnectButton,
+  WalletStatusPill,
+} from '@/components/wallet';
+import { FOREST_GREEN } from '@/constants/theme';
+import { useWallet } from '@/contexts/wallet-context';
 
 export default function WalletScreen() {
-  const { resetOnboarding, hasCompletedOnboarding } = useOnboardingContext();
-  const { isConnected, displayAddress } = useWalletState();
+  const {
+    chainId,
+    isConnected,
+    isWrongNetwork,
+    error,
+    disconnect,
+    switchToChiliz,
+    getShortAddress,
+  } = useWallet();
 
-  function handleResetOnboarding() {
-    Alert.alert(
-      '🔄 Reset Onboarding',
-      'This will show the welcome screen. The app will reload automatically.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset & Reload',
-          style: 'destructive',
-          onPress: () => {
-            resetOnboarding();
-          },
-        },
-      ],
-    );
+  const displayAddress = getShortAddress() || 'Not connected';
+  const displayChainId = chainId?.toString() || 'N/A';
+  const isCorrectNetwork = isConnected && !isWrongNetwork;
+  const canTransact = isConnected && isCorrectNetwork;
+
+  async function handleDisconnect() {
+    try {
+      await disconnect();
+      Alert.alert('Disconnected', 'Wallet disconnected successfully');
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to disconnect');
+    }
   }
 
   return (
-    <ThemedView className="flex-1 p-4">
-      <ScrollView contentContainerClassName="pb-12">
-        <View className="items-center">
+    <ThemedView
+      className="flex-1"
+      style={{ backgroundColor: FOREST_GREEN }}
+    >
+      <ScrollView contentContainerClassName="p-4 pb-12">
+        <View className="mt-16 items-center">
           <Card
             elevation="lg"
-            className="w-full border-4 border-white p-8"
+            className="w-full border-4 border-white p-6"
             style={{ backgroundColor: FOREST_GREEN }}
           >
-            <ThemedText type="display" className="mb-2 text-center text-white">
-              🎮 PEPPER WALLET
-            </ThemedText>
-            <ThemedText type="caption" className="mb-8 text-center text-mint">
-              CONNECTION & ONBOARDING
-            </ThemedText>
-
-            <Card
-              elevation="sm"
-              variant="alt"
-              className="mb-6 border-white p-4"
-              style={{ backgroundColor: INK }}
-            >
-              <ThemedText type="caption" className="mb-2 text-white">
-                <ThemedText type="caption" className="font-bold">
-                  Onboarding:
-                </ThemedText>{' '}
-                {hasCompletedOnboarding ? '✓ Complete' : '✗ Not Complete'}
+            <View className="mb-6 items-center">
+              <ThemedText
+                type="display"
+                lightColor="#FFFFFF"
+                className="mb-2 text-center font-bold text-white"
+              >
+                PEPPER WALLET
               </ThemedText>
-              <ThemedText type="caption" className="text-white">
-                <ThemedText type="caption" className="font-bold">
-                  Wallet:
-                </ThemedText>{' '}
-                {isConnected ? `✓ ${displayAddress}` : '✗ Not Connected'}
-              </ThemedText>
-            </Card>
+            </View>
 
-            <Button
-              onPress={() => router.push('/wallet-demo')}
-              variant="primary"
-              className="mb-4 w-full"
-            >
-              WALLET DEMO
-            </Button>
 
-            <Button
-              onPress={() => router.push('/modal')}
-              variant="secondary"
-              className="mb-4 w-full"
-            >
-              SETTINGS
-            </Button>
+            <View className="space-y-6">
+              <View className="space-y-4">
+                <ThemedText
+                  type="subtitle"
+                  lightColor="#FFFFFF"
+                  className="text-lg font-bold uppercase tracking-wider text-white"
+                >
+                  Wallet Status
+                </ThemedText>
 
-            <Button
-              onPress={handleResetOnboarding}
-              variant="secondary"
-              className="w-full"
-            >
-              🔄 RESET ONBOARDING
-            </Button>
+                <WalletStatusPill />
+
+                <View className="space-y-3 border-3 border-white bg-[#1a1a1a] p-4">
+                  <View>
+                    <Text className="mb-1 text-xs uppercase text-[#00FF80]">
+                      Connection
+                    </Text>
+                    <Text className="text-sm text-white">
+                      {isConnected ? '✓ Connected' : '✗ Not Connected'}
+                    </Text>
+                  </View>
+
+                  <View>
+                    <Text className="mb-1 text-xs uppercase text-[#00FF80]">
+                      Short Address
+                    </Text>
+                    <Text className="font-mono text-sm text-white">
+                      {displayAddress}
+                    </Text>
+                  </View>
+
+                  <View>
+                    <Text className="mb-1 text-xs uppercase text-[#00FF80]">
+                      Chain ID
+                    </Text>
+                    <Text className="text-sm text-white">
+                      {displayChainId}
+                      {isConnected && (
+                        <Text
+                          className={
+                            isWrongNetwork ? 'text-[#FF006E]' : 'text-[#00FF80]'
+                          }
+                        >
+                          {' '}
+                          {isWrongNetwork
+                            ? '(Wrong Network)'
+                            : '(Chiliz Chain)'}
+                        </Text>
+                      )}
+                    </Text>
+                  </View>
+
+                  <View>
+                    <Text className="mb-1 text-xs uppercase text-[#00FF80]">
+                      Can Transact
+                    </Text>
+                    <Text className="text-sm text-white">
+                      {canTransact ? '✓ Yes' : '✗ No'}
+                      {isWrongNetwork && ' - Wrong Network'}
+                      {!isConnected && ' - Not Connected'}
+                    </Text>
+                  </View>
+
+                  {error && (
+                    <View className="mt-2 border-2 border-[#FF006E] bg-[#330011] p-3">
+                      <Text className="mb-1 text-xs uppercase text-[#FF006E]">
+                        Error
+                      </Text>
+                      <Text className="text-xs text-white">
+                        {error.message}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              {isWrongNetwork && (
+                <View className="space-y-2">
+                  <ThemedText
+                    type="subtitle"
+                    lightColor="#FFFFFF"
+                    className="text-lg font-bold uppercase tracking-wider text-white"
+                  >
+                    Network Error
+                  </ThemedText>
+                  <NetworkMismatchWarning />
+                </View>
+              )}
+
+              <View className="mt-4 space-y-4">
+                <ThemedText
+                  type="subtitle"
+                  lightColor="#FFFFFF"
+                  className="text-lg font-bold uppercase tracking-wider text-white"
+                >
+                  Actions
+                </ThemedText>
+
+                <View className="space-y-3">
+                  <WalletConnectButton />
+
+                  {isConnected && (
+                    <Pressable
+                      onPress={handleDisconnect}
+                      className="border-4 border-white bg-[#FF006E] px-6 py-3 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                    >
+                      <Text className="text-center text-sm font-bold uppercase tracking-wider text-white">
+                        Disconnect
+                      </Text>
+                    </Pressable>
+                  )}
+
+                  {isWrongNetwork && (
+                    <Pressable
+                      onPress={switchToChiliz}
+                      className="border-4 border-white bg-[#0080FF] px-6 py-3 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                    >
+                      <Text className="text-center text-sm font-bold uppercase tracking-wider text-white">
+                        Switch Network
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+
+            </View>
           </Card>
         </View>
       </ScrollView>
     </ThemedView>
   );
 }
-
-

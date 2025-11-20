@@ -1,17 +1,22 @@
 import { Image, type ImageSource } from 'expo-image';
-import { useEffect } from 'react';
-import { View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
 
+import { TreasuryTransactionsModal } from '@/components/home/treasury-transactions-modal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PepperTokenMetrics } from '@/config/pepper-token';
-import { FOREST_GREEN } from '@/constants/theme';
+import { DANGER_RED, FOREST_GREEN, SUCCESS_GREEN } from '@/constants/theme';
 import { usePepperTokenMetrics } from '@/hooks/use-pepper-token-metrics';
+import {
+  calculateBurnedFromOriginalSupply,
+  formatPepperAmount,
+  formatTreasuryChzDelta,
+} from '@/lib/pepper-metrics';
 import { telemetry } from '@/lib/telemetry';
 
-const ICON_LOGO = require('@/assets/images/pepper/logo.png');
 const ICON_TOTAL_SUPPLY = require('@/assets/images/pepper/total-supply.png');
 const ICON_TREASURY = require('@/assets/images/pepper/treasury.png');
 const ICON_VAULT = require('@/assets/images/pepper/vault.png');
@@ -24,6 +29,9 @@ interface PepperDashboardProps {
 export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
   const { metrics, isError, isFetching, lastUpdated } =
     usePepperTokenMetrics();
+
+  const [isTreasuryModalVisible, setIsTreasuryModalVisible] =
+    useState<boolean>(false);
 
   const decimals = metrics?.decimals ?? 18;
 
@@ -40,11 +48,11 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
       >
         {showHeader ? (
           <View className="mb-6 items-center">
-            <Image
+            {/* <Image
               source={ICON_LOGO}
               style={{ width: 72, height: 72, marginBottom: 12 }}
               contentFit="contain"
-            />
+            /> */}
             <ThemedText
               type="display"
               lightColor="#FFFFFF"
@@ -77,16 +85,26 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
           </View>
         ) : null}
 
-        <View className="mt-6">
+        <View className="mt-2">
           <MetricsGrid
             decimals={decimals}
             isError={isError}
             isFetching={isFetching}
             lastUpdated={lastUpdated}
             metrics={metrics ?? null}
+            onPressTreasury={() => {
+              setIsTreasuryModalVisible(true);
+            }}
           />
         </View>
       </Card>
+
+      <TreasuryTransactionsModal
+        visible={isTreasuryModalVisible}
+        onClose={() => {
+          setIsTreasuryModalVisible(false);
+        }}
+      />
     </ThemedView>
   );
 }
@@ -97,6 +115,7 @@ interface MetricsGridProps {
   isError: boolean;
   isFetching: boolean;
   lastUpdated: string | null;
+  onPressTreasury: () => void;
 }
 
 function MetricsGrid({
@@ -105,6 +124,7 @@ function MetricsGrid({
   isError,
   isFetching,
   lastUpdated,
+  onPressTreasury,
 }: MetricsGridProps) {
   const hasData = metrics !== null;
 
@@ -143,12 +163,27 @@ function MetricsGrid({
           icon={ICON_TOTAL_SUPPLY}
         />
         <MetricTile
-          label="Pepper Treasury"
+          label="Treasury (CHZ)"
           value={
             hasData
-              ? formatPepperAmount(metrics.treasuryBalance, decimals)
+              ? `${formatPepperAmount(metrics.treasuryChzBalance, 18)} CHZ`
               : '–'
           }
+          subtitle={
+            hasData && metrics.treasuryChzDelta !== null
+              ? formatTreasuryChzDelta(metrics.treasuryChzDelta)
+              : null
+          }
+          subtitleColor={
+            hasData && metrics.treasuryChzDelta !== null
+              ? metrics.treasuryChzDelta > BigInt(0)
+                ? SUCCESS_GREEN
+                : metrics.treasuryChzDelta < BigInt(0)
+                  ? DANGER_RED
+                  : undefined
+              : undefined
+          }
+          onPress={onPressTreasury}
           icon={ICON_TREASURY}
         />
         <MetricTile
@@ -163,8 +198,11 @@ function MetricsGrid({
         <MetricTile
           label="Burnt Pepper"
           value={
-            hasData && metrics.hasBurnData
-              ? formatPepperAmount(metrics.burnedAmount, decimals)
+            hasData
+              ? formatPepperAmount(
+                  calculateBurnedFromOriginalSupply(metrics.totalSupply, decimals),
+                  0,
+                )
               : '–'
           }
           icon={ICON_BURN}
@@ -190,11 +228,25 @@ interface MetricTileProps {
   label: string;
   value: string;
   icon: ImageSource;
+  subtitle?: string | null;
+  subtitleColor?: string;
+  onPress?: () => void;
 }
 
-function MetricTile({ label, value, icon }: MetricTileProps) {
+function MetricTile({
+  label,
+  value,
+  subtitle,
+  subtitleColor,
+  onPress,
+  icon,
+}: MetricTileProps) {
   return (
-    <View className="w-full flex-row gap-4 rounded-none border-2 border-white bg-surface-alt px-3 py-4 shadow-[3px_3px_0px_#000000]">
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      className="w-full flex-row gap-4 rounded-none border-2 border-white bg-surface-alt px-3 py-4 shadow-[3px_3px_0px_#000000]"
+    >
       <Image
         source={icon}
         style={{ width: 48, height: 48 }}
@@ -204,73 +256,23 @@ function MetricTile({ label, value, icon }: MetricTileProps) {
         <ThemedText type="caption">
           {label.toUpperCase()}
         </ThemedText>
-        <ThemedText type="title">
-          {value}
-        </ThemedText>
+        <View className="flex-row items-end gap-2">
+          <ThemedText type="title">
+            {value}
+          </ThemedText>
+          {subtitle ? (
+            <ThemedText
+              type="caption"
+              lightColor={subtitleColor}
+              className="text-xs mb-2"
+            >
+              {subtitle}
+            </ThemedText>
+          ) : null}
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 type PepperTokenMetricsOrNull = PepperTokenMetrics | null;
-
-export function formatPepperAmount(
-  rawAmount: bigint,
-  decimals: number,
-  fractionDigits: number = 0,
-): string {
-  const factor = BigInt(10) ** BigInt(decimals);
-  const integerPart = rawAmount / factor;
-  const fractionalPart = rawAmount % factor;
-
-  const integerString = integerPart.toString().replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ',',
-  );
-
-  if (fractionDigits === 0) {
-    return integerString;
-  }
-
-  const fractionalString = fractionalPart
-    .toString()
-    .padStart(decimals, '0')
-    .slice(0, fractionDigits)
-    .replace(/0+$/, '');
-
-  if (fractionalString.length === 0) {
-    return integerString;
-  }
-
-  return `${integerString}.${fractionalString}`;
-}
-
-export function formatTimeSince(timestamp: string): string {
-  const updatedAt = new Date(timestamp).getTime();
-  const now = Date.now();
-  const diffMs = Math.max(0, now - updatedAt);
-
-  const diffSeconds = Math.floor(diffMs / 1000);
-
-  const diffMinutes = Math.floor(diffSeconds / 60);
-
-  if (diffMinutes < 1) {
-    return 'just now';
-  }
-
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m`;
-  }
-
-  const diffHours = Math.floor(diffMinutes / 60);
-
-  if (diffHours < 24) {
-    return `${diffHours}h`;
-  }
-
-  const diffDays = Math.floor(diffHours / 24);
-
-  return `${diffDays}d`;
-}
-
-

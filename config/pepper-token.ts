@@ -12,6 +12,19 @@
 export const PEPPER_TOKEN_ADDRESS = '0x60F397acBCfB8f4e3234C659A3E10867e6fA6b67';
 
 /**
+ * Original Pepper token supply in whole tokens (before applying decimals).
+ *
+ * Some explorers derive burned amount as (originalSupply - currentTotalSupply).
+ * We store the original supply as an integer token amount (no decimals) and
+ * convert on the fly when comparing with on-chain totalSupply.
+ *
+ * Human-readable: 8,888,888,888,000,000 PEPPER
+ */
+export const PEPPER_ORIGINAL_SUPPLY = BigInt(
+  '8888888888000000',
+);
+
+/**
  * DAO treasury addresses holding Pepper.
  *
  * This array is intentionally designed to support multiple
@@ -45,6 +58,8 @@ export interface PepperTokenMetrics {
   burnedAmount: bigint;
   stakedAmount: bigint;
   treasuryBalance: bigint;
+  treasuryChzBalance: bigint;
+  treasuryChzDelta: bigint | null;
   circulatingSupply: bigint;
   decimals: number;
   updatedAt: string;

@@ -11,10 +11,15 @@ import {
   fetchPepperBalances,
   fetchPepperTokenMetadata,
   fetchPepperTreasuryBalances,
+  fetchTreasuryChz24hDelta,
+  fetchTreasuryChzBalances,
+  type NativeAddressBalance,
   type PepperAddressBalance,
 } from '@/services/chiliz-api';
 
-export function sumBalances(balances: Array<PepperAddressBalance>): bigint {
+export function sumBalances<T extends { balance: bigint }>(
+  balances: Array<T>,
+): bigint {
   return balances.reduce<bigint>((sum, item) => {
     return sum + item.balance;
   }, BigInt(0));
@@ -36,17 +41,28 @@ export function calculateCirculatingSupply(
 }
 
 async function loadPepperTokenMetrics(): Promise<PepperTokenMetrics> {
-  const [metadata, treasuryBalances, burnBalances, stakingBalances] =
-    await Promise.all([
-      fetchPepperTokenMetadata(),
-      fetchPepperTreasuryBalances(),
-      fetchPepperBalances(PEPPER_BURN_ADDRESSES),
-      fetchPepperBalances(PEPPER_STAKING_CONTRACT_ADDRESSES),
-    ]);
+  const [
+    metadata,
+    treasuryBalances,
+    burnBalances,
+    stakingBalances,
+    treasuryChzBalances,
+    treasuryChzDelta,
+  ] = await Promise.all([
+    fetchPepperTokenMetadata(),
+    fetchPepperTreasuryBalances(),
+    fetchPepperBalances(PEPPER_BURN_ADDRESSES),
+    fetchPepperBalances(PEPPER_STAKING_CONTRACT_ADDRESSES),
+    fetchTreasuryChzBalances(),
+    fetchTreasuryChz24hDelta(),
+  ]);
 
-  const treasuryBalance = sumBalances(treasuryBalances);
-  const burnedAmount = sumBalances(burnBalances);
-  const stakedAmount = sumBalances(stakingBalances);
+  const treasuryBalance = sumBalances<PepperAddressBalance>(treasuryBalances);
+  const burnedAmount = sumBalances<PepperAddressBalance>(burnBalances);
+  const stakedAmount = sumBalances<PepperAddressBalance>(stakingBalances);
+  const treasuryChzBalance = sumBalances<NativeAddressBalance>(
+    treasuryChzBalances,
+  );
 
   const circulatingSupply = calculateCirculatingSupply(
     metadata.totalSupply,
@@ -60,6 +76,8 @@ async function loadPepperTokenMetrics(): Promise<PepperTokenMetrics> {
     burnedAmount,
     stakedAmount,
     treasuryBalance,
+    treasuryChzBalance,
+    treasuryChzDelta,
     circulatingSupply,
     decimals: metadata.decimals,
     updatedAt: new Date().toISOString(),

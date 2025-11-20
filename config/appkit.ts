@@ -42,6 +42,21 @@ const metadata = {
 };
 
 /**
+ * Featured wallets configuration
+ *
+ * By adding wallet IDs to `featuredWalletIds`, Reown will display these
+ * wallets as primary / recommended options in the wallet selection modal.
+ *
+ * Source: Chiliz / Socios and Reown AppKit integration docs.
+ */
+const SOCIOS_WALLET_ID =
+  '56843177b5e89d4bcb19a27dab7c49e0f33d8d3a6c8c4c7e5274f605e92befd6';
+const METAMASK_WALLET_ID =
+  '1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369';
+const OKX_WALLET_ID =
+  '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0';
+
+/**
  * Define Chiliz network for AppKit
  * AppKit expects networks in AppKitNetwork format with specific structure
  */
@@ -93,6 +108,8 @@ export const appKit = createAppKit({
   adapters: [ethersAdapter],
   storage: appKitStorage,
   enableAnalytics: false, // Disable analytics to reduce initialization complexity
+  // Make Socios.com, MetaMask, and OKX the featured wallets in the Reown modal
+  featuredWalletIds: [SOCIOS_WALLET_ID, METAMASK_WALLET_ID, OKX_WALLET_ID],
   features: {
     swaps: false,
     onramp: false,

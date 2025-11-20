@@ -10,7 +10,7 @@ export default function TabLayout() {
   return (
     <NativeTabs
       minimizeBehavior="onScrollDown"
-      tintColor={Colors.light.secondary}
+      tintColor={Colors.light.primary}
       labelStyle={{ color: Colors.light.text }}>
       <NativeTabs.Trigger name="index">
         {Platform.select({

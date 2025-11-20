@@ -1,8 +1,8 @@
-import { formatPepperAmount } from '@/components/home/pepper-dashboard';
 import {
-    calculateCirculatingSupply,
-    sumBalances,
+  calculateCirculatingSupply,
+  sumBalances,
 } from '@/hooks/use-pepper-token-metrics';
+import { formatPepperAmount } from '@/lib/pepper-metrics';
 import type { PepperAddressBalance } from '@/services/chiliz-api';
 
 /**
