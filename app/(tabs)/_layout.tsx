@@ -21,6 +21,15 @@ export default function TabLayout() {
         <Label>Home</Label>
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="governance">
+        {Platform.select({
+          ios: <Icon sf={{ default: 'checkmark.seal', selected: 'checkmark.seal.fill' }} />,
+          android: <Icon src={<VectorIcon family={MaterialIcons} name="gavel" />} />,
+          default: <Icon src={<VectorIcon family={MaterialIcons} name="gavel" />} />,
+        })}
+        <Label>Governance</Label>
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="wallet">
         {Platform.select({
           ios: <Icon sf={{ default: 'creditcard', selected: 'creditcard.fill' }} />,
