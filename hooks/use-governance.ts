@@ -13,18 +13,16 @@ const GOVERNANCE_PROPOSALS_QUERY_KEY = ['governance', 'proposals'] as const;
 
 interface UseGovernanceProposalsOptions extends GovernanceProposalFilter {
   enabled?: boolean;
+  first?: number;
+  skip?: number;
 }
 
 export function useGovernanceProposals(options?: UseGovernanceProposalsOptions) {
-  const { status, type, enabled = true } = options ?? {};
+  const { status, enabled = true, first, skip } = options ?? {};
 
   return useQuery<Array<GovernanceProposal>>({
-    queryKey: [
-      ...GOVERNANCE_PROPOSALS_QUERY_KEY,
-      status ?? 'ALL',
-      type ?? 'ALL',
-    ],
-    queryFn: () => fetchGovernanceProposals({ status, type }),
+    queryKey: [...GOVERNANCE_PROPOSALS_QUERY_KEY, status ?? 'ALL', first, skip],
+    queryFn: () => fetchGovernanceProposals({ status }, { first, skip }),
     enabled,
   });
 }

@@ -39,6 +39,13 @@ function getStatusColors(status: GovernanceStatus): {
     };
   }
 
+  if (status === 'SUCCEEDED') {
+    return {
+      background: '#8B5CF6',
+      text: '#FFFFFF',
+    };
+  }
+
   return {
     background: '#4B5563',
     text: '#FFFFFF',

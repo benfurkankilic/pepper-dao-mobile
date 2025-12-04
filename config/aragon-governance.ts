@@ -1,56 +1,47 @@
 import { CHILIZ_CHAIN_ID } from './chains';
 
 /**
- * Governance configuration for the Pepper DAO Aragon instance.
+ * Governance configuration for the Pepper DAO Aragon OSx instance.
  *
- * NOTE:
- * - The DAO identifier and plugins here are derived from the Aragon web URL
- *   shown in product specs (chiliz-mainnet DAO).
- * - If the Aragon instance is migrated or re‑deployed, update this config only.
+ * The DAO uses the Aragon Backend API to fetch proposals, which handles
+ * plugin discovery automatically. The plugin addresses below are for
+ * reference and for direct on-chain interactions if needed.
+ *
+ * Pepper DAO Governance Structure:
+ * - Multisig Plugin: For proposals requiring multiple approvals
+ * - SPP (Staged Proposal Plugin): For staged governance with multiple voting phases
  */
 export interface AragonGovernanceConfig {
-  daoAddress: string;
+  /** The DAO contract address on Chiliz mainnet */
+  daoAddress: `0x${string}`;
+  /** Network segment used in Aragon URLs and API */
   daoNetworkKey: string;
+  /** Chain ID for the network */
   chainId: number;
-  /**
-   * Optional endpoint for fetching proposals from a subgraph or Aragon API.
-   * Keeping it configurable avoids hard‑coding environment specific URLs.
-   */
-  proposalsApiUrl?: string;
-  /**
-   * Human‑readable plugin identifiers we care about for filtering.
-   */
+  /** Plugin contract addresses (discovered from Aragon Backend API) */
   plugins: {
-    admin: string;
-    evolution: string;
-  };
-  /**
-   * Optional contract data for on-chain voting.
-   * These can be wired to Aragon OSx Token Voting or Multisig contracts.
-   */
-  voting?: {
-    contractAddress?: string;
-    abi?: Array<unknown>;
+    /** Multisig plugin instance address */
+    multisig: `0x${string}`;
+    /** SPP (Staged Proposal Plugin) address - for PEP proposals */
+    spp: `0x${string}`;
   };
 }
 
 export const PEPPER_DAO_GOVERNANCE_CONFIG: AragonGovernanceConfig = {
-  // DAO address as displayed in Aragon URL (verify if the DAO is redeployed)
+  // DAO address as displayed in Aragon URL
   daoAddress: '0xDedD0A73c3EC17dfbd057b0bD3FE6D2152b7284B',
-  // Network segment used in Aragon URLs, e.g. app.aragon.org/dao/chiliz-mainnet/<daoAddress>
+  // Network segment used in Aragon URLs and API
   daoNetworkKey: 'chiliz-mainnet',
   chainId: CHILIZ_CHAIN_ID,
-  // This can point to a subgraph or REST endpoint once finalized.
-  // Example: 'https://api.aragon.org/graphql'
-  proposalsApiUrl: undefined,
+
+  /**
+   * Plugin addresses - discovered from Aragon Backend API
+   * These are the actual installed plugin instance addresses
+   */
   plugins: {
-    admin: 'admin',
-    evolution: 'pepper-evolution',
-  },
-  voting: {
-    contractAddress: undefined,
-    abi: undefined,
+    // Multisig plugin instance (discovered from API)
+    multisig: '0x1FecF1c23dD2E8C7adF937583b345277d39bD554',
+    // SPP (Staged Proposal Plugin) for PEP proposals
+    spp: '0x8d639bd52301D7265Ebd1E6d4B0813f1CF190415',
   },
 };
-
-

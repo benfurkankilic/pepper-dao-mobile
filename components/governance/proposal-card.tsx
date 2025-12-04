@@ -51,10 +51,10 @@ export function ProposalCard(props: ProposalCardProps) {
       <View className="mb-2 flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           <ProposalStatusPill status={proposal.status} />
-          {proposal.stageLabel ? (
-            <Text className="text-[10px] text-white/80">
-              {proposal.stageLabel}
-            </Text>
+          {proposal.type === 'ADMIN' ? (
+            <Text className="text-[10px] text-white/80">Admin</Text>
+          ) : proposal.type === 'PEP' ? (
+            <Text className="text-[10px] text-white/80">Community</Text>
           ) : null}
         </View>
 

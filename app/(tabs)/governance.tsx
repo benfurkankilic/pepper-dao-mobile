@@ -8,30 +8,31 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FOREST_GREEN } from '@/constants/theme';
 import { useGovernanceProposals } from '@/hooks/use-governance';
-import type { GovernanceProposal, GovernanceProposalType } from '@/types/governance';
+import type { GovernanceProposal, GovernanceStatus } from '@/types/governance';
 
-type GovernanceFilterTab = 'ALL' | 'ADMIN' | 'PEPPER_EVOLUTION';
+type GovernanceFilterTab = 'ALL' | 'ACTIVE' | 'EXECUTED' | 'PENDING';
 
 function getFilterLabel(tab: GovernanceFilterTab): string {
-  if (tab === 'ADMIN') return 'Admin';
-  if (tab === 'PEPPER_EVOLUTION') return 'Pepper Evolution Proposal';
-  return 'All proposals';
+  if (tab === 'ACTIVE') return 'Active';
+  if (tab === 'EXECUTED') return 'Executed';
+  if (tab === 'PENDING') return 'Pending';
+  return 'All';
 }
 
-function getProposalTypeFromTab(tab: GovernanceFilterTab): GovernanceProposalType | 'ALL' {
-  if (tab === 'ADMIN') return 'ADMIN';
-  if (tab === 'PEPPER_EVOLUTION') return 'PEPPER_EVOLUTION';
+function getStatusFromTab(tab: GovernanceFilterTab): GovernanceStatus | 'ALL' {
+  if (tab === 'ACTIVE') return 'ACTIVE';
+  if (tab === 'EXECUTED') return 'EXECUTED';
+  if (tab === 'PENDING') return 'PENDING';
   return 'ALL';
 }
 
 export default function GovernanceScreen() {
   const [activeTab, setActiveTab] = useState<GovernanceFilterTab>('ALL');
 
-  const proposalType: GovernanceProposalType | 'ALL' = getProposalTypeFromTab(activeTab);
+  const statusFilter: GovernanceStatus | 'ALL' = getStatusFromTab(activeTab);
 
   const { data: proposals, isLoading, isError, refetch } = useGovernanceProposals({
-    status: 'ALL',
-    type: proposalType,
+    status: statusFilter,
   });
 
   function renderContent() {
@@ -120,7 +121,7 @@ export default function GovernanceScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ flexDirection: 'row' }}
           >
-            {(['ALL', 'ADMIN', 'PEPPER_EVOLUTION'] as Array<GovernanceFilterTab>).map((tab) => {
+            {(['ALL', 'ACTIVE', 'EXECUTED', 'PENDING'] as Array<GovernanceFilterTab>).map((tab) => {
               const isActive: boolean = activeTab === tab;
               return (
                 <Pressable
