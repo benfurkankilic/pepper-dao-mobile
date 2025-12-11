@@ -2,7 +2,7 @@ import { useAccount, useAppKit } from '@reown/appkit-react-native';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { clearAppKitStorage } from '@/config/appkit-storage';
-import { CHILIZ_CHAIN_ID } from '@/config/chains';
+import { ACTIVE_CHAIN_ID } from '@/config/chains';
 import { STORAGE_KEYS, StorageService } from '@/lib/storage';
 import { telemetry } from '@/lib/telemetry';
 import type { ConnectOptions, WalletError } from '@/types/wallet';
@@ -84,7 +84,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       telemetry.trackWalletConnected('reown', numericChainId, address);
       
       // Track network mismatch if present
-      if (numericChainId !== CHILIZ_CHAIN_ID) {
+      if (numericChainId !== ACTIVE_CHAIN_ID) {
         telemetry.trackNetworkMismatchShown(numericChainId);
       }
     } else if (!isConnected) {
@@ -95,14 +95,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   
   // Compute if user is on wrong network
   const isWrongNetwork = isConnected && chainId !== undefined 
-    ? (typeof chainId === 'string' ? parseInt(chainId, 10) : chainId) !== CHILIZ_CHAIN_ID
+    ? (typeof chainId === 'string' ? parseInt(chainId, 10) : chainId) !== ACTIVE_CHAIN_ID
     : false;
 
   /**
    * Check if a chain is supported
    */
   const isChainSupported = useCallback((chainId: number): boolean => {
-    return chainId === CHILIZ_CHAIN_ID;
+    return chainId === ACTIVE_CHAIN_ID;
   }, []);
 
   /**
@@ -166,13 +166,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [appKitDisconnect]);
 
   /**
-   * Switch to Chiliz network
+   * Switch to the active Chiliz network
    * User must switch manually in their wallet app
    */
   const switchToChiliz = useCallback(async (): Promise<void> => {
+    const networkName = __DEV__ ? 'Chiliz Spicy Testnet (88882)' : 'Chiliz Chain (88888)';
     const walletError: WalletError = {
       code: 'UNSUPPORTED_METHOD',
-      message: 'Please switch to Chiliz Chain (88888) in your wallet app',
+      message: `Please switch to ${networkName} in your wallet app`,
       details: null,
     };
     setError(walletError);

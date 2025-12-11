@@ -1,9 +1,9 @@
 import { createPublicClient, http } from 'viem';
 
-import { PRIMARY_CHAIN } from '../config/chains';
+import { chiliz } from '../config/chains';
 import {
-  PEPPER_TOKEN_ADDRESS,
-  PEPPER_TREASURY_ADDRESSES,
+    PEPPER_TOKEN_ADDRESS,
+    PEPPER_TREASURY_ADDRESSES,
 } from '../config/pepper-token';
 
 export interface PepperTokenMetadata {
@@ -88,8 +88,12 @@ const ERC20_ABI = [
   },
 ] as const;
 
+/**
+ * Public client for Chiliz mainnet
+ * Always uses mainnet since PEPPER token and treasury contracts only exist there
+ */
 const publicClient = createPublicClient({
-  chain: PRIMARY_CHAIN,
+  chain: chiliz,
   transport: http(),
 });
 

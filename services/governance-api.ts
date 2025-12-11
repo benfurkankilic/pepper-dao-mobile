@@ -2,12 +2,7 @@ import {
   PEPPER_DAO_GOVERNANCE_CONFIG,
   type AragonGovernanceConfig,
 } from '@/config/aragon-governance';
-import {
-  getAllProposals,
-  getMultisigProposal,
-  getSppProposal,
-  type OnChainProposal,
-} from '@/lib/aragon-onchain';
+import { type OnChainProposal } from '@/lib/aragon-onchain';
 import {
   generateTimeLabel,
   type GovernanceProposal,
@@ -145,20 +140,159 @@ function filterProposals(
 }
 
 /**
+ * Mock proposal data for development
+ * Based on Aragon IProposal interface structure
+ */
+function getMockProposals(): Array<OnChainProposal> {
+  const now = Math.floor(Date.now() / 1000);
+  const { plugins } = PEPPER_DAO_GOVERNANCE_CONFIG;
+
+  return [
+    // Active Multisig Proposal
+    {
+      id: `${plugins.multisig.toLowerCase()}_0`,
+      proposalId: 0,
+      executed: false,
+      approvals: 2,
+      minApprovals: 3,
+      startDate: now - 86400, // Started 1 day ago
+      endDate: now + 259200, // Ends in 3 days
+      actions: [
+        {
+          to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+          value: BigInt('1000000000000000000'), // 1 CHZ
+          data: '0x',
+        },
+      ],
+      allowFailureMap: BigInt(0),
+      pluginAddress: plugins.multisig,
+      pluginType: 'MULTISIG',
+    },
+    // Executed PEP Proposal
+    {
+      id: `${plugins.spp.toLowerCase()}_0`,
+      proposalId: 0,
+      executed: true,
+      approvals: 5,
+      minApprovals: 3,
+      startDate: now - 604800, // Started 7 days ago
+      endDate: now - 86400, // Ended 1 day ago
+      actions: [
+        {
+          to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+          value: BigInt('5000000000000000000'), // 5 CHZ
+          data: '0x095ea7b3000000000000000000000000742d35cc6634c0532925a3b844bc9e7595f0beb0000000000000000000000000000000000000000000000000de0b6b3a7640000',
+        },
+      ],
+      allowFailureMap: BigInt(0),
+      pluginAddress: plugins.spp,
+      pluginType: 'SPP',
+    },
+    // Pending Multisig Proposal
+    {
+      id: `${plugins.multisig.toLowerCase()}_1`,
+      proposalId: 1,
+      executed: false,
+      approvals: 0,
+      minApprovals: 3,
+      startDate: now + 172800, // Starts in 2 days
+      endDate: now + 518400, // Ends in 6 days
+      actions: [
+        {
+          to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+          value: BigInt('2000000000000000000'), // 2 CHZ
+          data: '0x',
+        },
+        {
+          to: '0xDedD0A73c3EC17dfbd057b0bD3FE6D2152b7284B',
+          value: BigInt(0),
+          data: '0xa9059cbb000000000000000000000000742d35cc6634c0532925a3b844bc9e7595f0beb0000000000000000000000000000000000000000000000000de0b6b3a7640000',
+        },
+      ],
+      allowFailureMap: BigInt(0),
+      pluginAddress: plugins.multisig,
+      pluginType: 'MULTISIG',
+    },
+    // Succeeded PEP Proposal (not executed)
+    {
+      id: `${plugins.spp.toLowerCase()}_1`,
+      proposalId: 1,
+      executed: false,
+      approvals: 4,
+      minApprovals: 3,
+      startDate: now - 432000, // Started 5 days ago
+      endDate: now - 3600, // Ended 1 hour ago
+      actions: [
+        {
+          to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+          value: BigInt('10000000000000000000'), // 10 CHZ
+          data: '0x',
+        },
+      ],
+      allowFailureMap: BigInt(0),
+      pluginAddress: plugins.spp,
+      pluginType: 'SPP',
+    },
+    // Defeated Multisig Proposal
+    {
+      id: `${plugins.multisig.toLowerCase()}_2`,
+      proposalId: 2,
+      executed: false,
+      approvals: 1,
+      minApprovals: 3,
+      startDate: now - 345600, // Started 4 days ago
+      endDate: now - 7200, // Ended 2 hours ago
+      actions: [
+        {
+          to: '0xDedD0A73c3EC17dfbd057b0bD3FE6D2152b7284B',
+          value: BigInt(0),
+          data: '0x095ea7b3000000000000000000000000742d35cc6634c0532925a3b844bc9e7595f0beb0000000000000000000000000000000000000000000000056bc75e2d63100000',
+        },
+      ],
+      allowFailureMap: BigInt(0),
+      pluginAddress: plugins.multisig,
+      pluginType: 'MULTISIG',
+    },
+    // Another Active PEP Proposal
+    {
+      id: `${plugins.spp.toLowerCase()}_2`,
+      proposalId: 2,
+      executed: false,
+      approvals: 3,
+      minApprovals: 5,
+      startDate: now - 43200, // Started 12 hours ago
+      endDate: now + 302400, // Ends in 3.5 days
+      actions: [
+        {
+          to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+          value: BigInt('3000000000000000000'), // 3 CHZ
+          data: '0x',
+        },
+      ],
+      allowFailureMap: BigInt(0),
+      pluginAddress: plugins.spp,
+      pluginType: 'SPP',
+    },
+  ];
+}
+
+/**
  * Fetch governance proposals from on-chain
  */
 export async function fetchGovernanceProposals(
   filter?: GovernanceProposalFilter,
+  pagination?: { first?: number; skip?: number },
 ): Promise<Array<GovernanceProposal>> {
   console.log('[Governance API] fetchGovernanceProposals called');
   console.log('[Governance API] Filter:', filter);
+  console.log('[Governance API] Pagination:', pagination);
 
   try {
-    // Fetch proposals from all plugins on-chain
-    const onChainProposals = await getAllProposals();
+    // Use mock data instead of on-chain calls
+    const onChainProposals = getMockProposals();
 
     console.log(
-      '[Governance API] On-chain proposals received:',
+      '[Governance API] Mock proposals received:',
       onChainProposals.length,
     );
 
@@ -175,7 +309,16 @@ export async function fetchGovernanceProposals(
     const filtered = filterProposals(proposals, filter);
     console.log('[Governance API] After filtering:', filtered.length);
 
-    return filtered;
+    // Apply pagination if provided
+    let result = filtered;
+    if (pagination) {
+      const skip = pagination.skip ?? 0;
+      const first = pagination.first ?? filtered.length;
+      result = filtered.slice(skip, skip + first);
+      console.log('[Governance API] After pagination:', result.length);
+    }
+
+    return result;
   } catch (error) {
     console.error('[Governance API] Error fetching proposals:', error);
     // Return empty array instead of throwing to prevent app crashes
@@ -192,36 +335,12 @@ export async function fetchGovernanceProposalById(
   console.log('[Governance API] Fetching proposal by ID:', id);
 
   try {
-    // Parse the ID to determine plugin and proposal ID
-    // Format: pluginAddress_proposalId
-    const parts = id.split('_');
-    if (parts.length !== 2) {
-      console.error('[Governance API] Invalid proposal ID format:', id);
-      return null;
-    }
-
-    const [pluginAddress, proposalIdStr] = parts;
-    const proposalId = parseInt(proposalIdStr, 10);
-
-    if (isNaN(proposalId)) {
-      console.error('[Governance API] Invalid proposal ID number:', id);
-      return null;
-    }
-
-    // Determine which plugin to query
-    const { plugins } = PEPPER_DAO_GOVERNANCE_CONFIG;
-    let onChainProposal: OnChainProposal | null = null;
-
-    if (pluginAddress.toLowerCase() === plugins.multisig.toLowerCase()) {
-      onChainProposal = await getMultisigProposal(proposalId);
-    } else if (pluginAddress.toLowerCase() === plugins.spp.toLowerCase()) {
-      onChainProposal = await getSppProposal(proposalId);
-    } else {
-      console.error('[Governance API] Unknown plugin address:', pluginAddress);
-      return null;
-    }
+    // Use mock data instead of on-chain calls
+    const mockProposals = getMockProposals();
+    const onChainProposal = mockProposals.find((p) => p.id === id);
 
     if (!onChainProposal) {
+      console.log('[Governance API] Proposal not found in mock data:', id);
       return null;
     }
 

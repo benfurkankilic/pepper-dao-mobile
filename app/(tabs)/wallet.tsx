@@ -1,13 +1,15 @@
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { StakingPanel } from '@/components/staking';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Card } from '@/components/ui/card';
 import {
-  NetworkMismatchWarning,
-  WalletConnectButton,
-  WalletStatusPill,
+    NetworkMismatchWarning,
+    WalletConnectButton,
+    WalletStatusPill,
 } from '@/components/wallet';
+import { ACTIVE_CHAIN_ID } from '@/config/chains';
 import { FOREST_GREEN } from '@/constants/theme';
 import { useWallet } from '@/contexts/wallet-context';
 
@@ -27,6 +29,9 @@ export default function WalletScreen() {
   const isCorrectNetwork = isConnected && !isWrongNetwork;
   const canTransact = isConnected && isCorrectNetwork;
 
+  // Determine network name based on environment
+  const networkName = __DEV__ ? 'Spicy Testnet' : 'Chiliz Chain';
+
   async function handleDisconnect() {
     try {
       await disconnect();
@@ -42,7 +47,8 @@ export default function WalletScreen() {
       style={{ backgroundColor: FOREST_GREEN }}
     >
       <ScrollView contentContainerClassName="p-4 pb-12">
-        <View className="mt-16 items-center">
+        <View className="mt-16 space-y-6">
+          {/* Wallet Status Card */}
           <Card
             elevation="lg"
             className="w-full border-4 border-white p-6"
@@ -56,6 +62,13 @@ export default function WalletScreen() {
               >
                 PEPPER WALLET
               </ThemedText>
+              {__DEV__ && (
+                <View className="mt-2 border-2 border-[#FFD700] bg-[#FFD700]/20 px-3 py-1">
+                  <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#FFD700]">
+                    Development Mode - {networkName}
+                  </Text>
+                </View>
+              )}
             </View>
 
 
@@ -105,9 +118,18 @@ export default function WalletScreen() {
                           {' '}
                           {isWrongNetwork
                             ? '(Wrong Network)'
-                            : '(Chiliz Chain)'}
+                            : `(${networkName})`}
                         </Text>
                       )}
+                    </Text>
+                  </View>
+
+                  <View>
+                    <Text className="mb-1 text-xs uppercase text-[#00FF80]">
+                      Expected Chain
+                    </Text>
+                    <Text className="text-sm text-white">
+                      {ACTIVE_CHAIN_ID} ({networkName})
                     </Text>
                   </View>
 
@@ -186,6 +208,11 @@ export default function WalletScreen() {
 
             </View>
           </Card>
+
+          {/* Staking Panel */}
+          <View style={{ backgroundColor: FOREST_GREEN }}>
+            <StakingPanel />
+          </View>
         </View>
       </ScrollView>
     </ThemedView>
