@@ -2,6 +2,12 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
 
+import {
+    basisPointsToPercentage,
+    calculateCurrentSupport,
+    calculateParticipation,
+    getVoteDistribution,
+} from '@/lib/voting-calculations';
 import type { GovernanceProposal } from '@/types/governance';
 
 import { ProposalStatusPill } from './proposal-status-pill';
@@ -25,6 +31,72 @@ function getSecondaryLabel(proposal: GovernanceProposal): string {
 
   const date = new Date(proposal.createdAt);
   return date.toLocaleDateString();
+}
+
+interface VotingPreviewProps {
+  proposal: GovernanceProposal;
+}
+
+function VotingPreview(props: VotingPreviewProps) {
+  const { proposal } = props;
+
+  if (!proposal.tally || !proposal.votingSettings || !proposal.totalVotingPower) {
+    return null;
+  }
+
+  const distribution = getVoteDistribution(proposal.tally);
+  const supportPercent = basisPointsToPercentage(
+    calculateCurrentSupport(proposal.tally),
+  );
+  const participationPercent = basisPointsToPercentage(
+    calculateParticipation(proposal.tally, proposal.totalVotingPower),
+  );
+
+  return (
+    <View className="mt-2 border-t-2 border-white/20 pt-2">
+      {/* Mini Progress Bar */}
+      <View className="mb-1 h-2 flex-row border-2 border-white/40">
+        {distribution.yes > 0 ? (
+          <View
+            style={{
+              width: `${distribution.yes}%`,
+              backgroundColor: '#00FF80',
+              height: '100%',
+            }}
+          />
+        ) : null}
+        {distribution.abstain > 0 ? (
+          <View
+            style={{
+              width: `${distribution.abstain}%`,
+              backgroundColor: '#6B7280',
+              height: '100%',
+            }}
+          />
+        ) : null}
+        {distribution.no > 0 ? (
+          <View
+            style={{
+              width: `${distribution.no}%`,
+              backgroundColor: '#FF006E',
+              height: '100%',
+            }}
+          />
+        ) : null}
+      </View>
+
+      {/* Stats */}
+      <View className="flex-row items-center gap-3">
+        <Text className="text-[9px] text-white/60">
+          {supportPercent.toFixed(0)}% Support
+        </Text>
+        <Text className="text-[9px] text-white/60">•</Text>
+        <Text className="text-[9px] text-white/60">
+          {participationPercent.toFixed(0)}% Participation
+        </Text>
+      </View>
+    </View>
+  );
 }
 
 export function ProposalCard(props: ProposalCardProps) {
@@ -79,6 +151,9 @@ export function ProposalCard(props: ProposalCardProps) {
       <Text className="text-[10px] text-white/60">
         by {shortenAddress(proposal.proposer)}
       </Text>
+
+      {/* Voting Preview */}
+      <VotingPreview proposal={proposal} />
     </Pressable>
   );
 }

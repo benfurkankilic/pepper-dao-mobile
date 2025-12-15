@@ -132,3 +132,6 @@ When ready to switch to real on-chain data:
 2. Update `fetchGovernanceProposalById()` to use original plugin query logic
 3. Restore imports for `getAllProposals`, `getMultisigProposal`, `getSppProposal`
 4. Test with real Chiliz testnet/mainnet data
+
+
+

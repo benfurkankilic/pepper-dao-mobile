@@ -31,6 +31,53 @@ export interface ProposalAction {
   data: string;
 }
 
+/**
+ * Vote option enum matching Aragon's IMajorityVoting.VoteOption
+ * - NONE: User has not voted
+ * - ABSTAIN: Vote option 1
+ * - YES: Vote option 2 (to approve)
+ * - NO: Vote option 3 (to reject)
+ */
+export type VoteOption = 'NONE' | 'ABSTAIN' | 'YES' | 'NO';
+
+/**
+ * Voting tally structure from Aragon Token Voting
+ * Stores voting power for each option as string to handle large numbers
+ */
+export interface ProposalTally {
+  /** Voting power for "yes" votes */
+  yes: string;
+  /** Voting power for "no" votes */
+  no: string;
+  /** Voting power for "abstain" votes */
+  abstain: string;
+}
+
+/**
+ * Voting settings from Aragon's VotingSettings
+ * Basis points: 1% = 10000, so 50% = 500000
+ */
+export interface VotingSettings {
+  /** Support threshold in basis points (e.g., 50% = 500000) */
+  supportThreshold: number;
+  /** Minimum participation in basis points (e.g., 15% = 150000) */
+  minParticipation: number;
+  /** Minimum duration in seconds */
+  minDuration: number;
+  /** Minimum proposer voting power required */
+  minProposerVotingPower: string;
+}
+
+/**
+ * User's vote on a specific proposal
+ */
+export interface UserVote {
+  proposalId: string;
+  voter: string;
+  voteOption: VoteOption;
+  votingPower: string;
+}
+
 export interface GovernanceProposal {
   /** Subgraph ID (format: plugin_proposalId) */
   id: string;
@@ -67,6 +114,14 @@ export interface GovernanceProposal {
    * Computed from dates for UI display.
    */
   timeLabel?: string | null;
+  /** Voting tally (yes/no/abstain counts) */
+  tally?: ProposalTally;
+  /** Voting configuration and thresholds */
+  votingSettings?: VotingSettings;
+  /** Total voting power at proposal snapshot */
+  totalVotingPower?: string;
+  /** Current user's vote (if any) */
+  userVote?: UserVote;
 }
 
 export interface GovernanceProposalFilter {

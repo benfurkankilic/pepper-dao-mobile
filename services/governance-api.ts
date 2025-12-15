@@ -1,14 +1,14 @@
 import {
-  PEPPER_DAO_GOVERNANCE_CONFIG,
-  type AragonGovernanceConfig,
+    PEPPER_DAO_GOVERNANCE_CONFIG,
+    type AragonGovernanceConfig,
 } from '@/config/aragon-governance';
 import { type OnChainProposal } from '@/lib/aragon-onchain';
 import {
-  generateTimeLabel,
-  type GovernanceProposal,
-  type GovernanceProposalFilter,
-  type GovernanceProposalType,
-  type GovernanceStatus,
+    generateTimeLabel,
+    type GovernanceProposal,
+    type GovernanceProposalFilter,
+    type GovernanceProposalType,
+    type GovernanceStatus,
 } from '@/types/governance';
 
 /**
@@ -64,7 +64,20 @@ function deriveStatus(proposal: OnChainProposal): GovernanceStatus {
  * Transform an on-chain proposal to our app's GovernanceProposal type
  */
 function transformOnChainProposal(
-  proposal: OnChainProposal,
+  proposal: OnChainProposal & {
+    tally?: {
+      yes: string;
+      no: string;
+      abstain: string;
+    };
+    votingSettings?: {
+      supportThreshold: number;
+      minParticipation: number;
+      minDuration: number;
+      minProposerVotingPower: string;
+    };
+    totalVotingPower?: string;
+  },
 ): GovernanceProposal {
   console.log(
     '[Governance API] Transforming proposal:',
@@ -99,6 +112,10 @@ function transformOnChainProposal(
       data: a.data,
     })),
     timeLabel: null,
+    tally: proposal.tally,
+    votingSettings: proposal.votingSettings,
+    totalVotingPower: proposal.totalVotingPower,
+    userVote: undefined,
   };
 
   // Generate time label based on status and dates
@@ -143,7 +160,22 @@ function filterProposals(
  * Mock proposal data for development
  * Based on Aragon IProposal interface structure
  */
-function getMockProposals(): Array<OnChainProposal> {
+function getMockProposals(): Array<
+  OnChainProposal & {
+    tally?: {
+      yes: string;
+      no: string;
+      abstain: string;
+    };
+    votingSettings?: {
+      supportThreshold: number;
+      minParticipation: number;
+      minDuration: number;
+      minProposerVotingPower: string;
+    };
+    totalVotingPower?: string;
+  }
+> {
   const now = Math.floor(Date.now() / 1000);
   const { plugins } = PEPPER_DAO_GOVERNANCE_CONFIG;
 
@@ -167,6 +199,18 @@ function getMockProposals(): Array<OnChainProposal> {
       allowFailureMap: BigInt(0),
       pluginAddress: plugins.multisig,
       pluginType: 'MULTISIG',
+      tally: {
+        yes: '60000000000000000000', // 60 CTV
+        no: '30000000000000000000', // 30 CTV
+        abstain: '10000000000000000000', // 10 CTV
+      },
+      votingSettings: {
+        supportThreshold: 500000, // 50%
+        minParticipation: 150000, // 15%
+        minDuration: 259200, // 3 days
+        minProposerVotingPower: '1000000000000000000', // 1 CTV
+      },
+      totalVotingPower: '100000000000000000000', // 100 CTV total
     },
     // Executed PEP Proposal
     {
@@ -187,6 +231,18 @@ function getMockProposals(): Array<OnChainProposal> {
       allowFailureMap: BigInt(0),
       pluginAddress: plugins.spp,
       pluginType: 'SPP',
+      tally: {
+        yes: '100000000000000000000', // 100 CTV
+        no: '0', // 0 CTV
+        abstain: '0', // 0 CTV
+      },
+      votingSettings: {
+        supportThreshold: 500000, // 50%
+        minParticipation: 150000, // 15%
+        minDuration: 604800, // 7 days
+        minProposerVotingPower: '1000000000000000000', // 1 CTV
+      },
+      totalVotingPower: '100000000000000000000', // 100 CTV total
     },
     // Pending Multisig Proposal
     {
@@ -212,6 +268,18 @@ function getMockProposals(): Array<OnChainProposal> {
       allowFailureMap: BigInt(0),
       pluginAddress: plugins.multisig,
       pluginType: 'MULTISIG',
+      tally: {
+        yes: '0', // No votes yet
+        no: '0',
+        abstain: '0',
+      },
+      votingSettings: {
+        supportThreshold: 500000, // 50%
+        minParticipation: 150000, // 15%
+        minDuration: 259200, // 3 days
+        minProposerVotingPower: '1000000000000000000', // 1 CTV
+      },
+      totalVotingPower: '100000000000000000000', // 100 CTV total
     },
     // Succeeded PEP Proposal (not executed)
     {
@@ -232,6 +300,18 @@ function getMockProposals(): Array<OnChainProposal> {
       allowFailureMap: BigInt(0),
       pluginAddress: plugins.spp,
       pluginType: 'SPP',
+      tally: {
+        yes: '75000000000000000000', // 75 CTV
+        no: '10000000000000000000', // 10 CTV
+        abstain: '5000000000000000000', // 5 CTV
+      },
+      votingSettings: {
+        supportThreshold: 500000, // 50%
+        minParticipation: 150000, // 15%
+        minDuration: 432000, // 5 days
+        minProposerVotingPower: '1000000000000000000', // 1 CTV
+      },
+      totalVotingPower: '100000000000000000000', // 100 CTV total
     },
     // Defeated Multisig Proposal
     {
@@ -252,6 +332,18 @@ function getMockProposals(): Array<OnChainProposal> {
       allowFailureMap: BigInt(0),
       pluginAddress: plugins.multisig,
       pluginType: 'MULTISIG',
+      tally: {
+        yes: '20000000000000000000', // 20 CTV
+        no: '70000000000000000000', // 70 CTV
+        abstain: '5000000000000000000', // 5 CTV
+      },
+      votingSettings: {
+        supportThreshold: 500000, // 50%
+        minParticipation: 150000, // 15%
+        minDuration: 345600, // 4 days
+        minProposerVotingPower: '1000000000000000000', // 1 CTV
+      },
+      totalVotingPower: '100000000000000000000', // 100 CTV total
     },
     // Another Active PEP Proposal
     {
@@ -272,6 +364,18 @@ function getMockProposals(): Array<OnChainProposal> {
       allowFailureMap: BigInt(0),
       pluginAddress: plugins.spp,
       pluginType: 'SPP',
+      tally: {
+        yes: '45000000000000000000', // 45 CTV
+        no: '25000000000000000000', // 25 CTV
+        abstain: '10000000000000000000', // 10 CTV
+      },
+      votingSettings: {
+        supportThreshold: 500000, // 50%
+        minParticipation: 200000, // 20%
+        minDuration: 302400, // 3.5 days
+        minProposerVotingPower: '1000000000000000000', // 1 CTV
+      },
+      totalVotingPower: '150000000000000000000', // 150 CTV total
     },
   ];
 }
