@@ -1,0 +1,30 @@
+# Supabase Configuration
+# Project: Pepper DAO Mobile
+# Project ID: dwzuolcegznclqfyijic
+
+[project]
+id = "dwzuolcegznclqfyijic"
+name = "pepper-dao"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "exp://localhost:8081"
+
+[functions]
+# Edge Functions configuration
+# Deploy: supabase functions deploy <function-name>
+# Logs: supabase functions logs <function-name>
+

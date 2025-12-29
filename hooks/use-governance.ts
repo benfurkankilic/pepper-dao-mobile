@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 
 import {
-  fetchGovernanceProposalById,
-  fetchGovernanceProposals,
+    fetchGovernanceProposalById,
+    fetchGovernanceProposals,
 } from '@/services/governance-api';
 import type {
-  GovernanceProposal,
-  GovernanceProposalFilter,
+    GovernanceProposal,
+    GovernanceProposalFilter,
 } from '@/types/governance';
 
 const GOVERNANCE_PROPOSALS_QUERY_KEY = ['governance', 'proposals'] as const;
@@ -24,6 +24,8 @@ export function useGovernanceProposals(options?: UseGovernanceProposalsOptions) 
     queryKey: [...GOVERNANCE_PROPOSALS_QUERY_KEY, status ?? 'ALL', first, skip],
     queryFn: () => fetchGovernanceProposals({ status }, { first, skip }),
     enabled,
+    staleTime: 30_000, // 30 seconds - per documentation
+    gcTime: 300_000, // 5 minutes cache retention
   });
 }
 
@@ -44,6 +46,8 @@ export function useGovernanceProposal(options: UseGovernanceProposalOptions) {
       return fetchGovernanceProposalById(proposalId);
     },
     enabled: enabled && Boolean(proposalId),
+    staleTime: 60_000, // 1 minute - per documentation
+    gcTime: 300_000, // 5 minutes cache retention
   });
 }
 
