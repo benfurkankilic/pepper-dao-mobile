@@ -1,12 +1,13 @@
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 
-import { getRankLevel, RANK_LABELS, RANK_ORDER } from '@/lib/reputation';
+import { RANK_IMAGES } from '@/lib/rank-images';
+import { getRankLevel, RANK_LABELS } from '@/lib/reputation';
 import type { Rank } from '@/types/user';
 
 interface RankBadgeProps {
   rank: Rank;
   size?: 'sm' | 'md' | 'lg';
-  showStars?: boolean;
+  showImage?: boolean;
 }
 
 /**
@@ -34,9 +35,7 @@ function getRankColor(rank: Rank): string {
 /**
  * Rank Badge Component
  */
-export function RankBadge({ rank, size = 'md', showStars = true }: RankBadgeProps) {
-  const level = getRankLevel(rank);
-  const maxLevel = RANK_ORDER.length;
+export function RankBadge({ rank, size = 'md', showImage = true }: RankBadgeProps) {
   const color = getRankColor(rank);
 
   const sizeClasses = {
@@ -51,28 +50,29 @@ export function RankBadge({ rank, size = 'md', showStars = true }: RankBadgeProp
     lg: 'text-base',
   };
 
+  const imageSizes = {
+    sm: 32,
+    md: 48,
+    lg: 64,
+  };
+
   return (
     <View
-      className={`border-4 border-black shadow-[4px_4px_0px_#000000] ${sizeClasses[size]}`}
+      className={`items-center border-4 border-black shadow-[4px_4px_0px_#000000] ${sizeClasses[size]}`}
       style={{ backgroundColor: color }}
     >
+      {showImage && (
+        <Image
+          source={RANK_IMAGES[rank]}
+          style={{ width: imageSizes[size], height: imageSizes[size], marginBottom: 4 }}
+          resizeMode="contain"
+        />
+      )}
       <Text
         className={`text-center font-['PPNeueBit-Bold'] uppercase tracking-wider text-white ${textSizeClasses[size]}`}
       >
         {RANK_LABELS[rank]}
       </Text>
-      {showStars && (
-        <View className="mt-1 flex-row justify-center">
-          {Array.from({ length: maxLevel }).map((_, i) => (
-            <Text
-              key={i}
-              className={`${textSizeClasses[size]} ${i < level ? 'text-yellow-300' : 'text-white/30'}`}
-            >
-              ★
-            </Text>
-          ))}
-        </View>
-      )}
     </View>
   );
 }

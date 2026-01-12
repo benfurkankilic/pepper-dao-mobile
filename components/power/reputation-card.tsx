@@ -1,7 +1,8 @@
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
-import { getRankDisplay, RANK_LABELS } from '@/lib/reputation';
+import { RANK_IMAGES } from '@/lib/rank-images';
+import { RANK_LABELS } from '@/lib/reputation';
 import type { Profile } from '@/types/user';
 
 interface ReputationCardProps {
@@ -14,41 +15,33 @@ interface ReputationCardProps {
  * Displays reputation points and rank side by side
  */
 export function ReputationCard({ profile }: ReputationCardProps) {
-  const rankDisplay = getRankDisplay(profile);
-
   return (
     <View className="flex-row gap-3">
-      {/* Reputation Points */}
-      <Card variant="dark" className="flex-1 p-4">
-        <Text className="mb-1 font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#00FF80]">
+      {/* Rank */}
+      <Card variant="dark" className="flex-1 flex-row items-center gap-3 p-3">
+        <Image
+          source={RANK_IMAGES[profile.rank]}
+          style={{ width: 48, height: 48 }}
+          resizeMode="contain"
+        />
+        <View>
+          <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#8B5CF6]">
+            Rank
+          </Text>
+          <Text className="font-['PPNeueBit-Bold'] text-xl text-white">
+            {RANK_LABELS[profile.rank]}
+          </Text>
+        </View>
+      </Card>
+
+      {/* Reputation */}
+      <Card variant="dark" className="flex-1 items-center justify-center p-3">
+        <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#00FF80]">
           Reputation
         </Text>
         <Text className="font-['PPNeueBit-Bold'] text-3xl text-white">
           {profile.reputation_points.toLocaleString()}
         </Text>
-        <Text className="font-['PPNeueBit-Bold'] text-xs text-white/60">
-          points
-        </Text>
-      </Card>
-
-      {/* Rank */}
-      <Card variant="dark" className="flex-1 p-4">
-        <Text className="mb-1 font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#8B5CF6]">
-          Rank
-        </Text>
-        <Text className="font-['PPNeueBit-Bold'] text-2xl text-white">
-          {RANK_LABELS[profile.rank]}
-        </Text>
-        <View className="mt-1 flex-row">
-          {Array.from({ length: rankDisplay.maxLevel }).map((_, i) => (
-            <Text
-              key={i}
-              className={`text-sm ${i < rankDisplay.level ? 'text-yellow-400' : 'text-white/20'}`}
-            >
-              ★
-            </Text>
-          ))}
-        </View>
       </Card>
     </View>
   );
