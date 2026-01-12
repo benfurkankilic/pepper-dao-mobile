@@ -30,26 +30,13 @@ export default function TabLayout() {
         <Label>Governance</Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="wallet">
+      <NativeTabs.Trigger name="power">
         {Platform.select({
-          ios: <Icon sf={{ default: 'creditcard', selected: 'creditcard.fill' }} />,
-          android: (
-            <Icon src={<VectorIcon family={MaterialIcons} name="account-balance-wallet" />} />
-          ),
-          default: (
-            <Icon src={<VectorIcon family={MaterialIcons} name="account-balance-wallet" />} />
-          ),
+          ios: <Icon sf={{ default: 'person.crop.circle', selected: 'person.crop.circle.fill' }} />,
+          android: <Icon src={<VectorIcon family={MaterialIcons} name="person" />} />,
+          default: <Icon src={<VectorIcon family={MaterialIcons} name="person" />} />,
         })}
-        <Label>Wallet</Label>
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="explore">
-        {Platform.select({
-          ios: <Icon sf={{ default: 'paperplane', selected: 'paperplane.fill' }} />,
-          android: <Icon src={<VectorIcon family={MaterialIcons} name="send" />} />,
-          default: <Icon src={<VectorIcon family={MaterialIcons} name="send" />} />,
-        })}
-        <Label>Explore</Label>
+        <Label>Power</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

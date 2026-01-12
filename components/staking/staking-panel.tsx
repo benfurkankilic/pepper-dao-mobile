@@ -116,12 +116,12 @@ export function StakingPanel() {
 
   if (!isReady) {
     return (
-      <Card elevation="lg" className="border-4 border-white p-6">
+      <Card variant="dark" elevation="lg" className="p-6">
         <View className="items-center py-8">
           <Text className="font-['PPNeueBit-Bold'] text-lg uppercase text-white">
             Connect wallet to stake
           </Text>
-          <Text className="mt-2 text-center text-sm text-gray-400">
+          <Text className="mt-2 text-center font-['PPNeueBit-Bold'] text-sm text-gray-400">
             Please connect your wallet to access staking features
           </Text>
         </View>
@@ -130,7 +130,7 @@ export function StakingPanel() {
   }
 
   return (
-    <Card elevation="lg" className="border-4 border-white p-6">
+    <Card variant="dark" elevation="lg" className="p-6">
       {/* Header */}
       <View className="mb-6">
         <Text className="font-['PPNeueBit-Bold'] text-xl uppercase tracking-wider text-white">

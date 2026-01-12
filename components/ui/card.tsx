@@ -1,10 +1,8 @@
 import { View, type ViewProps } from 'react-native';
 
-import { Colors } from '@/constants/theme';
-
 export interface CardProps extends ViewProps {
   elevation?: 'none' | 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'alt';
+  variant?: 'default' | 'alt' | 'dark';
 }
 
 export function Card({
@@ -15,11 +13,12 @@ export function Card({
   style,
   ...props
 }: CardProps) {
-  const baseClasses = 'rounded-none border-2';
+  const baseClasses = 'rounded-none';
   
-  const variantClasses = {
-    default: 'bg-surface border-border',
-    alt: 'bg-surface-alt border-border',
+  const variantStyles = {
+    default: { backgroundColor: '#FFFFFF', borderColor: '#1A2A22' },
+    alt: { backgroundColor: '#F3F6F4', borderColor: '#1A2A22' },
+    dark: { backgroundColor: '#1a1a1a', borderColor: '#000000' },
   };
 
   const elevationStyles = {
@@ -49,8 +48,9 @@ export function Card({
 
   return (
     <View
-      className={`${baseClasses} ${variantClasses[variant]} ${className || ''}`}
+      className={`${baseClasses} border-4 ${className || ''}`}
       style={[
+        variantStyles[variant],
         elevationStyles[elevation],
         style,
       ]}

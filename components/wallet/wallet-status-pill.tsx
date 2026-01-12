@@ -23,12 +23,12 @@ export function WalletStatusPill() {
     <View
       className={`
         ${bgColor}
-        border-3 border-white
-        px-4 py-2
-        shadow-[3px_3px_0px_#000000]
+        border-4 border-black
+        px-4 py-3
+        shadow-[4px_4px_0px_#000000]
       `}
     >
-      <Text className="font-bold text-xs text-white uppercase tracking-wider">
+      <Text className="font-['PPNeueBit-Bold'] text-sm uppercase tracking-wider text-white">
         {statusMessage}
         {displayAddress && ` • ${displayAddress}`}
       </Text>

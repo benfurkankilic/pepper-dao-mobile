@@ -24,8 +24,35 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    persistSession: false, // We don't need auth for this app
-    autoRefreshToken: false,
+    persistSession: true, // Enable session persistence for anonymous auth
+    autoRefreshToken: true,
+    storage: {
+      getItem: (key: string) => {
+        try {
+          // Use synchronous MMKV storage for Supabase auth
+          const { storage } = require('@/lib/storage');
+          return storage.getString(key) || null;
+        } catch {
+          return null;
+        }
+      },
+      setItem: (key: string, value: string) => {
+        try {
+          const { storage } = require('@/lib/storage');
+          storage.set(key, value);
+        } catch {
+          // Ignore storage errors
+        }
+      },
+      removeItem: (key: string) => {
+        try {
+          const { storage } = require('@/lib/storage');
+          storage.delete(key);
+        } catch {
+          // Ignore storage errors
+        }
+      },
+    },
   },
 });
 

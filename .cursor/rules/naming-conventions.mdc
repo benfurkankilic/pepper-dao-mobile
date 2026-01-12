@@ -9,3 +9,4 @@ alwaysApply: true
 - Use PascalCase for component and class names
 - Use camelCase for function and variable names
 - Use UPPERCASE_SNAKE_CASE for constants
+- Namings should be short but meaningful

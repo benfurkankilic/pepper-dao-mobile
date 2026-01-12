@@ -17,11 +17,12 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import type { EventSubscription } from 'expo-notifications';
 
 import { OnboardingGate } from '@/components/onboarding';
+import { WalletProfileLinker } from '@/components/wallet';
 import { OnboardingProvider } from '@/contexts/onboarding-context';
+import { UserProvider } from '@/contexts/user-context';
 import { WalletProvider } from '@/contexts/wallet-context';
 
 import { loadFontsAsync } from '@/lib/fonts';
-import { queryClient, useAppStateListener } from '@/lib/query-client';
 import {
   addNotificationReceivedListener,
   addNotificationResponseListener,
@@ -30,6 +31,7 @@ import {
   setupNotificationChannel,
   type PushNotificationData,
 } from '@/lib/push-notifications';
+import { queryClient, useAppStateListener } from '@/lib/query-client';
 
 // Import AppKit configuration and component
 // This must be imported to initialize AppKit
@@ -142,30 +144,34 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AppKitProvider instance={appKit}>
         <QueryClientProvider client={queryClient}>
-          <OnboardingProvider>
-            <WalletProvider>
-              <OnboardingGate>
-                <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-                  <Stack.Screen
-                    name="governance/[proposalId]"
-                    options={{ title: 'Proposal' }}
-                  />
-                </Stack>
-              </OnboardingGate>
-              <StatusBar style="dark" />
+          <UserProvider>
+            <OnboardingProvider>
+              <WalletProvider>
+                <WalletProfileLinker>
+                  <OnboardingGate>
+                    <Stack>
+                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+                      <Stack.Screen
+                        name="governance/[proposalId]"
+                        options={{ title: 'Proposal' }}
+                      />
+                    </Stack>
+                  </OnboardingGate>
+                  <StatusBar style="dark" />
 
-              {/* AppKit Modal - Android requires absolute positioning with Expo Router */}
-              {Platform.OS === 'android' ? (
-                <View style={{ position: 'absolute', height: '100%', width: '100%' }}>
-                  <AppKit />
-                </View>
-              ) : (
-                <AppKit />
-              )}
-            </WalletProvider>
-          </OnboardingProvider>
+                  {/* AppKit Modal - Android requires absolute positioning with Expo Router */}
+                  {Platform.OS === 'android' ? (
+                    <View style={{ position: 'absolute', height: '100%', width: '100%' }}>
+                      <AppKit />
+                    </View>
+                  ) : (
+                    <AppKit />
+                  )}
+                </WalletProfileLinker>
+              </WalletProvider>
+            </OnboardingProvider>
+          </UserProvider>
         </QueryClientProvider>
       </AppKitProvider>
     </SafeAreaProvider>

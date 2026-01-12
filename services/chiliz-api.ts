@@ -2,8 +2,8 @@ import { createPublicClient, http } from 'viem';
 
 import { chiliz } from '../config/chains';
 import {
-    PEPPER_TOKEN_ADDRESS,
-    PEPPER_TREASURY_ADDRESSES,
+  PEPPER_TOKEN_ADDRESS,
+  PEPPER_TREASURY_ADDRESSES,
 } from '../config/pepper-token';
 
 export interface PepperTokenMetadata {
@@ -402,8 +402,8 @@ export async function fetchTreasuryChz24hDelta(): Promise<bigint | null> {
     let totalDelta = BigInt(0);
 
     for (const address of PEPPER_TREASURY_ADDRESSES) {
-      const delta = await fetchAccountChz24hDelta(address);
-      totalDelta += delta;
+      // const delta = await fetchAccountChz24hDelta(address);
+      // totalDelta += delta;
     }
 
     return totalDelta;

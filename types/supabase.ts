@@ -5,6 +5,8 @@
  * These should match the database schema created in migrations.
  */
 
+import type { EventType, Rank, StreakType, VoteType, BrokenReason } from './user';
+
 export interface Database {
   public: {
     Tables: {
@@ -110,6 +112,108 @@ export interface Database {
         };
         Update: Partial<Database['public']['Tables']['notification_history']['Insert']>;
       };
+      profiles: {
+        Row: {
+          id: string;
+          wallet_address: string | null;
+          reputation_points: number;
+          rank: Rank;
+          current_streak_weeks: number;
+          longest_streak_weeks: number;
+          last_activity_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          wallet_address?: string | null;
+          reputation_points?: number;
+          rank?: Rank;
+          current_streak_weeks?: number;
+          longest_streak_weeks?: number;
+          last_activity_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
+      };
+      votes: {
+        Row: {
+          id: string;
+          profile_id: string;
+          proposal_id: number;
+          vote_type: VoteType;
+          transaction_hash: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          proposal_id: number;
+          vote_type: VoteType;
+          transaction_hash?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['votes']['Insert']>;
+      };
+      activities: {
+        Row: {
+          id: string;
+          profile_id: string;
+          event_type: EventType;
+          points: number;
+          total_after: number;
+          rank_before: Rank | null;
+          rank_after: Rank | null;
+          proposal_id: number | null;
+          streak_id: string | null;
+          metadata: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          event_type: EventType;
+          points: number;
+          total_after: number;
+          rank_before?: Rank | null;
+          rank_after?: Rank | null;
+          proposal_id?: number | null;
+          streak_id?: string | null;
+          metadata?: Record<string, unknown>;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['activities']['Insert']>;
+      };
+      streaks: {
+        Row: {
+          id: string;
+          profile_id: string;
+          streak_type: StreakType;
+          start_date: string;
+          end_date: string | null;
+          length_weeks: number;
+          is_active: boolean;
+          broken_reason: BrokenReason | null;
+          activities_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          streak_type?: StreakType;
+          start_date: string;
+          end_date?: string | null;
+          length_weeks?: number;
+          is_active?: boolean;
+          broken_reason?: BrokenReason | null;
+          activities_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['streaks']['Insert']>;
+      };
     };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
@@ -123,4 +227,14 @@ export type DeviceToken = Database['public']['Tables']['device_tokens']['Row'];
 export type DeviceTokenInsert = Database['public']['Tables']['device_tokens']['Insert'];
 export type SyncState = Database['public']['Tables']['sync_state']['Row'];
 export type NotificationHistory = Database['public']['Tables']['notification_history']['Row'];
+
+// New reputation system types
+export type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+export type VoteRow = Database['public']['Tables']['votes']['Row'];
+export type VoteInsert = Database['public']['Tables']['votes']['Insert'];
+export type ActivityRow = Database['public']['Tables']['activities']['Row'];
+export type ActivityInsert = Database['public']['Tables']['activities']['Insert'];
+export type StreakRow = Database['public']['Tables']['streaks']['Row'];
+export type StreakInsert = Database['public']['Tables']['streaks']['Insert'];
 
