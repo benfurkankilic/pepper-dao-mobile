@@ -124,6 +124,7 @@ function transformProposal(proposal: Proposal): GovernanceProposal {
     },
     totalVotingPower,
     userVote: undefined,
+    transactionHash: proposal.transaction_hash,
   };
 
   // Generate time label
