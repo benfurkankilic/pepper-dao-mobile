@@ -1,6 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { createPublicClient, getAbiItem, http } from 'npm:viem@2.38.6';
+import { createPublicClient, getAbiItem, http, hexToString } from 'npm:viem@2.38.6';
 
 /**
  * Sync Proposals Edge Function
@@ -35,6 +35,7 @@ const chiliz = {
 // Contract addresses (Pepper DAO on Chiliz)
 const STAGED_PROCESSOR_ADDRESS = '0x8d639bd52301D7265Ebd1E6d4B0813f1CF190415' as const;
 const TOKEN_VOTING_ADDRESS = '0x4D1a5e3AFe6d5bC9dfE72A8332b67C916CEb77ff' as const;
+const MULTISIG_ADDRESS = '0x1FecF1c23dD2E8C7adF937583b345277d39bD554' as const;
 
 /**
  * Staged Proposal Processor ABI (minimal)
@@ -168,8 +169,87 @@ const TOKEN_VOTING_ABI = [
   },
 ] as const;
 
+/**
+ * Multisig Plugin ABI (minimal)
+ * Full ABI: config/aragon-abis.ts
+ */
+const MULTISIG_ABI = [
+  {
+    inputs: [],
+    name: 'proposalCount',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: '_proposalId', type: 'uint256' }],
+    name: 'getProposal',
+    outputs: [
+      { internalType: 'bool', name: 'executed', type: 'bool' },
+      { internalType: 'uint16', name: 'approvals', type: 'uint16' },
+      {
+        components: [
+          { internalType: 'uint16', name: 'minApprovals', type: 'uint16' },
+          { internalType: 'uint64', name: 'snapshotBlock', type: 'uint64' },
+          { internalType: 'uint64', name: 'startDate', type: 'uint64' },
+          { internalType: 'uint64', name: 'endDate', type: 'uint64' },
+        ],
+        internalType: 'struct Multisig.ProposalParameters',
+        name: 'parameters',
+        type: 'tuple',
+      },
+      {
+        components: [
+          { internalType: 'address', name: 'to', type: 'address' },
+          { internalType: 'uint256', name: 'value', type: 'uint256' },
+          { internalType: 'bytes', name: 'data', type: 'bytes' },
+        ],
+        internalType: 'struct IDAO.Action[]',
+        name: 'actions',
+        type: 'tuple[]',
+      },
+      { internalType: 'uint256', name: 'allowFailureMap', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'uint256', name: 'proposalId', type: 'uint256' },
+      { indexed: true, internalType: 'address', name: 'creator', type: 'address' },
+      { indexed: false, internalType: 'uint64', name: 'startDate', type: 'uint64' },
+      { indexed: false, internalType: 'uint64', name: 'endDate', type: 'uint64' },
+      { indexed: false, internalType: 'bytes', name: 'metadata', type: 'bytes' },
+      {
+        components: [
+          { internalType: 'address', name: 'to', type: 'address' },
+          { internalType: 'uint256', name: 'value', type: 'uint256' },
+          { internalType: 'bytes', name: 'data', type: 'bytes' },
+        ],
+        indexed: false,
+        internalType: 'struct IDAO.Action[]',
+        name: 'actions',
+        type: 'tuple[]',
+      },
+      { indexed: false, internalType: 'uint256', name: 'allowFailureMap', type: 'uint256' },
+    ],
+    name: 'ProposalCreated',
+    type: 'event',
+  },
+] as const;
+
 // Rate limiting: minimum 60 seconds between syncs
 const MIN_SYNC_INTERVAL_MS = 60_000;
+
+/**
+ * Sanitize string for PostgreSQL text storage
+ * Removes null bytes and other invalid Unicode characters
+ */
+function sanitizeForPostgres(str: string): string {
+  // Remove null bytes and other control characters that Postgres can't store
+  return str.replace(/\u0000/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+}
 
 // Ankr Public tier limit: max 1,000 blocks per getLogs request
 const BLOCK_CHUNK_SIZE = BigInt(1_000);
@@ -178,9 +258,9 @@ const BLOCK_CHUNK_SIZE = BigInt(1_000);
 const MAX_BLOCKS_PER_CALL = BigInt(50_000);
 
 interface ProposalData {
-  proposal_id: number;
+  proposal_id: string;  // Aragon uses 256-bit hash IDs, stored as string
   plugin_address: string;
-  plugin_type: 'SPP';
+  plugin_type: 'SPP' | 'MULTISIG';
   title: string;
   description: string;
   status: string;
@@ -200,6 +280,7 @@ interface ProposalData {
   actions: Array<{ to: string; value: string; data: string }>;
   block_number: number;
   transaction_hash: string;
+  creator: string;  // Wallet address that created the proposal
 }
 
 Deno.serve(async (req: Request) => {
@@ -289,13 +370,18 @@ Deno.serve(async (req: Request) => {
 
     console.log(`Syncing from block ${startBlock} to ${targetBlock} (latest: ${latestBlock})`);
 
-    // Extract ProposalCreated event from ABI
-    const proposalCreatedEvent = getAbiItem({
+    // Extract ProposalCreated events from ABIs
+    const sppProposalCreatedEvent = getAbiItem({
       abi: STAGED_PROCESSOR_ABI,
       name: 'ProposalCreated',
     });
+    const multisigProposalCreatedEvent = getAbiItem({
+      abi: MULTISIG_ABI,
+      name: 'ProposalCreated',
+    });
 
-    const allLogs: Array<any> = [];
+    const allSppLogs: Array<any> = [];
+    const allMultisigLogs: Array<any> = [];
     let currentBlock = startBlock;
     let errorCount = 0;
     const maxErrors = 10;
@@ -306,18 +392,34 @@ Deno.serve(async (req: Request) => {
         currentBlock + BLOCK_CHUNK_SIZE > targetBlock ? targetBlock : currentBlock + BLOCK_CHUNK_SIZE;
 
       try {
-        const logs = await publicClient.getLogs({
+        // Query SPP events
+        const sppLogs = await publicClient.getLogs({
           address: STAGED_PROCESSOR_ADDRESS,
-          event: proposalCreatedEvent,
+          event: sppProposalCreatedEvent,
           fromBlock: currentBlock,
           toBlock,
           strict: true,
         });
 
-        if (logs.length > 0) {
-          console.log(`Found ${logs.length} events in blocks ${currentBlock}-${toBlock}`);
-          allLogs.push(...logs);
+        if (sppLogs.length > 0) {
+          console.log(`Found ${sppLogs.length} SPP events in blocks ${currentBlock}-${toBlock}`);
+          allSppLogs.push(...sppLogs);
         }
+
+        // Query Multisig events
+        const multisigLogs = await publicClient.getLogs({
+          address: MULTISIG_ADDRESS,
+          event: multisigProposalCreatedEvent,
+          fromBlock: currentBlock,
+          toBlock,
+          strict: true,
+        });
+
+        if (multisigLogs.length > 0) {
+          console.log(`Found ${multisigLogs.length} Multisig events in blocks ${currentBlock}-${toBlock}`);
+          allMultisigLogs.push(...multisigLogs);
+        }
+
         errorCount = 0; // Reset on success
       } catch (e: any) {
         console.error(`Error querying blocks ${currentBlock}-${toBlock}:`, e.message || e);
@@ -334,13 +436,21 @@ Deno.serve(async (req: Request) => {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
 
-    console.log(`Found ${allLogs.length} total ProposalCreated events`);
+    console.log(`Found ${allSppLogs.length} SPP and ${allMultisigLogs.length} Multisig ProposalCreated events`);
 
     // Process new proposals
     const newProposals: ProposalData[] = [];
 
-    for (const log of allLogs) {
-      const proposalId = Number(log.args.proposalId);
+    // Process SPP proposals
+    for (const log of allSppLogs) {
+      // Keep proposalId as BigInt for contract calls, string for storage
+      const proposalIdBigInt = log.args.proposalId as bigint;
+      const proposalId = proposalIdBigInt.toString();  // String for DB storage (256-bit hash)
+      // Get dates from event data (not contract query - contract returns 0)
+      const eventStartDate = Number(log.args.startDate);
+      const eventEndDate = Number(log.args.endDate);
+      const eventMetadata = log.args.metadata as string;
+      const eventActions = log.args.actions as Array<{ to: string; value: bigint; data: string }>;
 
       // Check if proposal already exists
       const { data: existing } = await supabase
@@ -361,7 +471,7 @@ Deno.serve(async (req: Request) => {
           address: STAGED_PROCESSOR_ADDRESS,
           abi: STAGED_PROCESSOR_ABI,
           functionName: 'getProposal',
-          args: [BigInt(proposalId)],
+          args: [proposalIdBigInt],  // Use BigInt for contract call
         });
 
         const sppData = sppResult as any;
@@ -370,13 +480,9 @@ Deno.serve(async (req: Request) => {
         const canceled = sppData.canceled;
         const actions = sppData.actions || [];
 
-        // Stage 0 = Spicy Ministers (Multisig)
-        // Stage 1 = Token Voting (Public voting)
-        // We want Stage 1+ proposals for public display
-        if (currentStage < 1) {
-          console.log(`Proposal ${proposalId} is at stage ${currentStage}, skipping (still in Stage 0)`);
-          continue;
-        }
+        // NOTE: Stage 0 filter removed - now indexing ALL proposals
+        // Stage 0 = Spicy Ministers (Multisig) - waiting for approval
+        // Stage 1 = Token Voting (Public voting) - public can vote
 
         // Get Token Voting details
         let votingDetails: any = null;
@@ -385,7 +491,7 @@ Deno.serve(async (req: Request) => {
             address: TOKEN_VOTING_ADDRESS,
             abi: TOKEN_VOTING_ABI,
             functionName: 'getProposal',
-            args: [BigInt(proposalId)],
+            args: [proposalIdBigInt],  // Use BigInt for contract call
           });
 
           votingDetails = {
@@ -402,7 +508,7 @@ Deno.serve(async (req: Request) => {
         }
 
         // Derive status
-        let status = 'ACTIVE';
+        let status = 'PENDING';
         if (executed) {
           status = 'EXECUTED';
         } else if (canceled) {
@@ -415,22 +521,46 @@ Deno.serve(async (req: Request) => {
             const no = BigInt(votingDetails.tally.no || 0);
             status = yes > no ? 'SUCCEEDED' : 'DEFEATED';
           }
+        } else if (currentStage === 0) {
+          status = 'PENDING'; // Stage 0 - waiting for multisig approval
         }
 
-        const startDate = votingDetails
-          ? new Date(Number(votingDetails.parameters.startDate) * 1000).toISOString()
-          : new Date(Number(sppData.lastStageTransition) * 1000).toISOString();
+        // Use event dates (from ProposalCreated event) - these are the correct values
+        // Contract getProposal returns 0 for lastStageTransition on new proposals
+        const startDate = new Date(eventStartDate * 1000).toISOString();
+        const endDate = new Date(eventEndDate * 1000).toISOString();
 
-        const endDate = votingDetails
-          ? new Date(Number(votingDetails.parameters.endDate) * 1000).toISOString()
-          : new Date((Number(sppData.lastStageTransition) + 7 * 24 * 60 * 60) * 1000).toISOString();
+        // Try to decode metadata (IPFS URL or direct content)
+        let title = `PEP Proposal #${proposalId}`;
+        let description = `Governance proposal with ${eventActions.length} action(s)`;
+        if (eventMetadata && eventMetadata.length > 2) {
+          try {
+            // Metadata is hex-encoded, use viem's hexToString to decode
+            const rawMetadata = hexToString(eventMetadata as `0x${string}`);
+            // Sanitize to remove null bytes that Postgres can't store
+            const metadataStr = sanitizeForPostgres(rawMetadata);
+            // Check if it's an IPFS URL or JSON
+            if (metadataStr.startsWith('ipfs://')) {
+              description = metadataStr; // Store IPFS URL for later resolution
+            } else if (metadataStr.startsWith('{')) {
+              const metadataJson = JSON.parse(metadataStr);
+              title = sanitizeForPostgres(metadataJson.title || title);
+              description = sanitizeForPostgres(metadataJson.description || description);
+            } else {
+              // Plain text metadata
+              title = sanitizeForPostgres(metadataStr.slice(0, 100) || title);
+            }
+          } catch (e) {
+            console.log(`Could not decode metadata for proposal ${proposalId}`);
+          }
+        }
 
         const proposalData: ProposalData = {
           proposal_id: proposalId,
           plugin_address: STAGED_PROCESSOR_ADDRESS.toLowerCase(),
           plugin_type: 'SPP',
-          title: `PEP Proposal #${proposalId}`,
-          description: `Governance proposal with ${actions.length} action(s)`,
+          title,
+          description,
           status,
           start_date: startDate,
           end_date: endDate,
@@ -454,11 +584,126 @@ Deno.serve(async (req: Request) => {
           })),
           block_number: Number(log.blockNumber),
           transaction_hash: log.transactionHash,
+          creator: (log.args.creator as string).toLowerCase(),
         };
 
         newProposals.push(proposalData);
       } catch (e) {
         console.error(`Failed to process proposal ${proposalId}:`, e);
+      }
+    }
+
+    // Process Multisig proposals
+    for (const log of allMultisigLogs) {
+      // Keep proposalId as BigInt for contract calls, string for storage
+      const proposalIdBigInt = log.args.proposalId as bigint;
+      const proposalId = proposalIdBigInt.toString();  // String for DB storage (256-bit hash)
+      // Get dates from event data (not contract query - contract may return 0)
+      const eventStartDate = Number(log.args.startDate);
+      const eventEndDate = Number(log.args.endDate);
+      const eventMetadata = log.args.metadata as string;
+      const eventActions = log.args.actions as Array<{ to: string; value: bigint; data: string }>;
+
+      // Check if proposal already exists
+      const { data: existing } = await supabase
+        .from('proposals')
+        .select('id')
+        .eq('proposal_id', proposalId)
+        .eq('plugin_address', MULTISIG_ADDRESS.toLowerCase())
+        .single();
+
+      if (existing) {
+        console.log(`Multisig proposal ${proposalId} already exists, skipping`);
+        continue;
+      }
+
+      try {
+        console.log(`Processing new Multisig proposal ${proposalId}...`);
+
+        const msResult = await publicClient.readContract({
+          address: MULTISIG_ADDRESS,
+          abi: MULTISIG_ABI,
+          functionName: 'getProposal',
+          args: [proposalIdBigInt],  // Use BigInt for contract call
+        });
+
+        const executed = (msResult as any)[0];
+        const approvals = Number((msResult as any)[1]);
+        const parameters = (msResult as any)[2];
+        const actions = (msResult as any)[3] || [];
+
+        const minApprovals = Number(parameters.minApprovals);
+        // Use event dates (from ProposalCreated event) - these are the correct values
+        const startDate = new Date(eventStartDate * 1000).toISOString();
+        const endDate = new Date(eventEndDate * 1000).toISOString();
+
+        // Try to decode metadata (IPFS URL or direct content)
+        let title = `ADMIN Proposal #${proposalId}`;
+        let description = `Multisig proposal with ${eventActions.length} action(s)`;
+        if (eventMetadata && eventMetadata.length > 2) {
+          try {
+            const rawMetadata = hexToString(eventMetadata as `0x${string}`);
+            const metadataStr = sanitizeForPostgres(rawMetadata);
+            if (metadataStr.startsWith('ipfs://')) {
+              description = metadataStr;
+            } else if (metadataStr.startsWith('{')) {
+              const metadataJson = JSON.parse(metadataStr);
+              title = sanitizeForPostgres(metadataJson.title || title);
+              description = sanitizeForPostgres(metadataJson.description || description);
+            } else {
+              title = sanitizeForPostgres(metadataStr.slice(0, 100) || title);
+            }
+          } catch (e) {
+            console.log(`Could not decode metadata for Multisig proposal ${proposalId}`);
+          }
+        }
+
+        // Derive status for Multisig
+        let status = 'ACTIVE';
+        if (executed) {
+          status = 'EXECUTED';
+        } else if (Date.now() > eventEndDate * 1000) {
+          status = approvals >= minApprovals ? 'SUCCEEDED' : 'DEFEATED';
+        }
+
+        const proposalData: ProposalData = {
+          proposal_id: proposalId,
+          plugin_address: MULTISIG_ADDRESS.toLowerCase(),
+          plugin_type: 'MULTISIG',
+          title,
+          description,
+          status,
+          start_date: startDate,
+          end_date: endDate,
+          executed_at: executed ? new Date().toISOString() : null,
+          tally_yes: '0',
+          tally_no: '0',
+          tally_abstain: '0',
+          total_voting_power: '0',
+          support_threshold: 0,
+          min_participation: 0,
+          min_duration: eventEndDate - eventStartDate,
+          current_stage: 0,
+          is_canceled: false,
+          is_open: !executed && Date.now() < eventEndDate * 1000,
+          actions: actions.map((a: any) => ({
+            to: a.to,
+            value: a.value.toString(),
+            data: a.data,
+          })),
+          block_number: Number(log.blockNumber),
+          transaction_hash: log.transactionHash,
+          creator: (log.args.creator as string).toLowerCase(),
+        };
+
+        // Add multisig-specific fields
+        (proposalData as any).approvals = approvals;
+        (proposalData as any).min_approvals = minApprovals;
+
+        newProposals.push(proposalData);
+        console.log(`Multisig proposal ${proposalId} processed (Status: ${status})`);
+      } catch (e) {
+        console.error(`Failed to process Multisig proposal ${proposalId}:`, e);
       }
     }
 
@@ -578,7 +823,13 @@ Deno.serve(async (req: Request) => {
       },
     );
   } catch (error) {
-    console.error('Sync error:', error);
+    // Get detailed error message
+    const errorMessage = error instanceof Error
+      ? error.message
+      : typeof error === 'object'
+        ? JSON.stringify(error)
+        : String(error);
+    console.error('Sync error:', errorMessage, error);
 
     // Try to update sync state with error
     try {
@@ -590,7 +841,7 @@ Deno.serve(async (req: Request) => {
         .from('sync_state')
         .update({
           sync_in_progress: false,
-          error_message: error instanceof Error ? error.message : 'Unknown error',
+          error_message: errorMessage.slice(0, 500),  // Truncate for DB
         })
         .eq('id', 'default');
     } catch (e) {
@@ -599,7 +850,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
       }),
       {
         status: 500,

@@ -44,6 +44,7 @@ export interface Database {
           block_number: number | null;
           transaction_hash: string | null;
           display_index: number | null;
+          creator: string | null;
         };
         Insert: Omit<
           Database['public']['Tables']['proposals']['Row'],

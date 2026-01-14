@@ -97,7 +97,7 @@ function transformProposal(proposal: Proposal): GovernanceProposal {
     description: proposal.description || '',
     status,
     type,
-    proposer: proposal.plugin_address,
+    proposer: proposal.creator || proposal.plugin_address,
     createdAt: proposal.created_at,
     startDate: proposal.start_date,
     endDate: proposal.end_date,

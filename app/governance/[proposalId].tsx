@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 
 import {
     ProposalStatusPill,
@@ -14,11 +14,17 @@ import { useGovernanceProposal } from '@/hooks/use-governance';
 import { formatBasisPointsAsPercentage } from '@/lib/voting-calculations';
 import type { GovernanceProposal } from '@/types/governance';
 
+const CHILIZ_EXPLORER_URL = 'https://chiliscan.com';
+
 function shortenAddress(address: string): string {
   if (address.length <= 10) {
     return address;
   }
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function openAddressInExplorer(address: string): void {
+  Linking.openURL(`${CHILIZ_EXPLORER_URL}/address/${address}`);
 }
 
 type TabType = 'details' | 'voting' | 'settings' | 'actions';
@@ -120,11 +126,17 @@ function DetailsTab(props: DetailsTabProps) {
       {/* Proposer */}
       <View style={{ marginBottom: 16 }}>
         <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 4 }}>
-          Created By
+          Proposed By
         </Text>
-        <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.8)' }}>
-          {shortenAddress(proposal.proposer)}
-        </Text>
+        <Pressable
+          onPress={() => openAddressInExplorer(proposal.proposer)}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+        >
+          <Text style={{ fontSize: 12, color: '#60A5FA' }}>
+            {shortenAddress(proposal.proposer)}
+          </Text>
+          <Text style={{ fontSize: 10, color: '#60A5FA' }}>↗</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -441,16 +453,21 @@ export default function GovernanceProposalDetailScreen() {
                   isActive={activeTab === 'details'}
                   onPress={() => setActiveTab('details')}
                 />
-                <TabButton
-                  label="Voting"
-                  isActive={activeTab === 'voting'}
-                  onPress={() => setActiveTab('voting')}
-                />
-                <TabButton
-                  label="Settings"
-                  isActive={activeTab === 'settings'}
-                  onPress={() => setActiveTab('settings')}
-                />
+                {/* Only show Voting and Settings tabs for non-ADMIN proposals */}
+                {proposal.type !== 'ADMIN' ? (
+                  <>
+                    <TabButton
+                      label="Voting"
+                      isActive={activeTab === 'voting'}
+                      onPress={() => setActiveTab('voting')}
+                    />
+                    <TabButton
+                      label="Settings"
+                      isActive={activeTab === 'settings'}
+                      onPress={() => setActiveTab('settings')}
+                    />
+                  </>
+                ) : null}
                 <TabButton
                   label="Actions"
                   isActive={activeTab === 'actions'}
