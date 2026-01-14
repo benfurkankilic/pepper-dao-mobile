@@ -81,15 +81,29 @@ function DetailsTab(props: DetailsTabProps) {
         </Text>
       </View>
 
-      {/* Approvals */}
-      <View style={{ marginBottom: 16 }}>
-        <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 4 }}>
-          Approvals
-        </Text>
-        <Text style={{ fontSize: 14, color: '#FFFFFF' }}>
-          {proposal.approvals} / {proposal.minApprovals} required
-        </Text>
-      </View>
+      {/* Approvals - different display for ADMIN vs other types */}
+      {proposal.type === 'ADMIN' ? (
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 4 }}>
+            Execution
+          </Text>
+          <Text style={{ fontSize: 14, color: '#FFFFFF', fontWeight: 'bold' }}>
+            Automatic execution
+          </Text>
+          <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.6)', marginTop: 4 }}>
+            Proposals created by admins pass automatically without any governance.
+          </Text>
+        </View>
+      ) : (
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 4 }}>
+            Approvals
+          </Text>
+          <Text style={{ fontSize: 14, color: '#FFFFFF' }}>
+            {proposal.approvals} / {proposal.minApprovals} required
+          </Text>
+        </View>
+      )}
 
       {/* Time Label */}
       {proposal.timeLabel ? (
@@ -122,6 +136,29 @@ interface VotingTabProps {
 
 function VotingTab(props: VotingTabProps) {
   const { proposal } = props;
+
+  // ADMIN proposals have automatic execution - no voting
+  if (proposal.type === 'ADMIN') {
+    return (
+      <View className="p-4">
+        <View
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            padding: 16,
+            borderLeftWidth: 4,
+            borderLeftColor: '#FFEA00',
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 8 }}>
+            Automatic execution
+          </Text>
+          <Text style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.7)', lineHeight: 20 }}>
+            Proposals created by admins pass automatically without any governance.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   if (!proposal.tally || !proposal.votingSettings || !proposal.totalVotingPower) {
     return (
@@ -384,6 +421,10 @@ export default function GovernanceProposalDetailScreen() {
                   ) : proposal.type === 'MULTISIG' ? (
                     <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.8)' }}>
                       Multisig
+                    </Text>
+                  ) : proposal.type === 'ADMIN' ? (
+                    <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.8)' }}>
+                      Admin
                     </Text>
                   ) : null}
                 </View>

@@ -35,9 +35,11 @@ export function getGovernanceConfig(): AragonGovernanceConfig {
  * Map plugin type to GovernanceProposalType
  */
 function mapPluginType(
-  pluginType: 'MULTISIG' | 'SPP',
+  pluginType: 'MULTISIG' | 'SPP' | 'ADMIN',
 ): GovernanceProposalType {
   switch (pluginType) {
+    case 'ADMIN':
+      return 'ADMIN';
     case 'MULTISIG':
       return 'MULTISIG';
     case 'SPP':
@@ -82,10 +84,15 @@ function transformProposal(proposal: Proposal): GovernanceProposal {
   const abstain = BigInt(proposal.tally_abstain || '0');
   const totalVotingPower = (yes + no + abstain).toString();
 
+  // Use display_index for human-readable key (ADMIN-0, PEP-0), fallback to proposal_id
+  const displayKey = proposal.display_index !== null
+    ? `${type}-${proposal.display_index}`
+    : `${type}-${proposal.proposal_id}`;
+
   const transformed: GovernanceProposal = {
     id: `${proposal.plugin_address}_${proposal.proposal_id}`,
     pluginProposalId: proposal.proposal_id.toString(),
-    key: `${type}-${proposal.proposal_id}`,
+    key: displayKey,
     title: proposal.title,
     description: proposal.description || '',
     status,
@@ -223,7 +230,7 @@ export async function fetchGovernanceProposals(
  *
  * Supports two ID formats:
  * - Composite ID: "0x...pluginAddress_proposalId" (from proposal list)
- * - Plain number: "1" or 1 (from push notifications)
+ * - Plain string: "58239165..." (256-bit proposal hash as string)
  */
 export async function fetchGovernanceProposalById(
   id: string | number,
@@ -231,24 +238,25 @@ export async function fetchGovernanceProposalById(
   console.log('[Governance API] Fetching proposal by ID:', id);
 
   try {
-    let proposalId: number;
+    let proposalId: string;
 
     // Handle both formats:
-    // 1. Plain number (from notifications): "1" or 1
-    // 2. Composite ID (from proposal list): "0x...address_1"
+    // 1. Plain string (256-bit hash): "58239165368147564883577661335437827568316383161788826404648226987043626091928"
+    // 2. Composite ID (from proposal list): "0x...address_58239165..."
+    // Note: proposal_id is stored as TEXT because it's a 256-bit hash (too large for JS number)
     if (typeof id === 'number') {
-      proposalId = id;
+      proposalId = id.toString();
     } else if (/^\d+$/.test(id)) {
-      // Plain numeric string
-      proposalId = Number(id);
+      // Plain numeric string - keep as string (don't convert to Number, it's too large)
+      proposalId = id;
     } else {
-      // Composite format: extract number after underscore
+      // Composite format: extract the proposal ID after underscore
       const match = id.match(/_(\d+)$/);
       if (!match) {
         console.log('[Governance API] Invalid proposal ID format:', id);
         return null;
       }
-      proposalId = Number(match[1]);
+      proposalId = match[1]; // Keep as string
     }
 
     const { data, error } = await supabase

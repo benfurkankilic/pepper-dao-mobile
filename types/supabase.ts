@@ -15,7 +15,7 @@ export interface Database {
           id: string;
           proposal_id: number;
           plugin_address: string;
-          plugin_type: 'MULTISIG' | 'SPP';
+          plugin_type: 'MULTISIG' | 'SPP' | 'ADMIN';
           title: string;
           description: string | null;
           status: 'PENDING' | 'ACTIVE' | 'SUCCEEDED' | 'DEFEATED' | 'EXECUTED' | 'CANCELED';
@@ -43,6 +43,7 @@ export interface Database {
           }>;
           block_number: number | null;
           transaction_hash: string | null;
+          display_index: number | null;
         };
         Insert: Omit<
           Database['public']['Tables']['proposals']['Row'],
