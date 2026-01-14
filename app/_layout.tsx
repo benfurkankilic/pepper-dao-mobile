@@ -156,6 +156,13 @@ export default function RootLayout() {
                         name="governance/[proposalId]"
                         options={{ title: 'Proposal' }}
                       />
+                      <Stack.Screen
+                        name="governance/create"
+                        options={{
+                          presentation: 'modal',
+                          headerShown: false,
+                        }}
+                      />
                     </Stack>
                   </OnboardingGate>
                   <StatusBar style="dark" />

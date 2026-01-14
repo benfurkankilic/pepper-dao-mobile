@@ -2,13 +2,18 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { FlashList } from '@shopify/flash-list';
+import { useRouter } from 'expo-router';
+import { formatUnits } from 'ethers';
 
-import { ProposalCard } from '@/components/governance';
+import { CreateProposalFAB, ProposalCard } from '@/components/governance';
+import { PixelAlertModal } from '@/components/ui/pixel-alert-modal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FOREST_GREEN } from '@/constants/theme';
 import { useGovernanceProposals } from '@/hooks/use-governance';
-import type { GovernanceProposal, GovernanceProposalType } from '@/types/governance';
+import { useProposerEligibility } from '@/hooks/use-proposer-eligibility';
+import { useWallet } from '@/contexts/wallet-context';
+import type { GovernanceProposal } from '@/types/governance';
 
 type ProposalTypeFilter = 'ALL' | 'ADMIN' | 'PEP';
 
@@ -18,10 +23,69 @@ const FILTER_TABS: Array<{ key: ProposalTypeFilter; label: string }> = [
   { key: 'PEP', label: 'Pepper Evolution' },
 ];
 
-export default function GovernanceScreen() {
-  const [activeTab, setActiveTab] = useState<ProposalTypeFilter>('ALL');
+interface AlertState {
+  visible: boolean;
+  title: string;
+  message: string;
+  type: 'error' | 'warning' | 'info';
+}
 
+export default function GovernanceScreen() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<ProposalTypeFilter>('ALL');
+  const [alert, setAlert] = useState<AlertState>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'error',
+  });
+
+  const { isConnected } = useWallet();
+  const { data: eligibility } = useProposerEligibility();
   const { data: allProposals, isLoading, isError, refetch } = useGovernanceProposals({});
+
+  function formatVotingPower(power: bigint) {
+    const formatted = parseFloat(formatUnits(power, 18));
+    if (formatted >= 1_000_000) {
+      return `${(formatted / 1_000_000).toFixed(1)}M`;
+    }
+    if (formatted >= 1_000) {
+      return `${(formatted / 1_000).toFixed(1)}K`;
+    }
+    return formatted.toFixed(0);
+  }
+
+  function showAlert(title: string, message: string, type: 'error' | 'warning' | 'info' = 'error') {
+    setAlert({ visible: true, title, message, type });
+  }
+
+  function hideAlert() {
+    setAlert((prev) => ({ ...prev, visible: false }));
+  }
+
+  function handleCreateProposal() {
+    if (!isConnected) {
+      showAlert(
+        'Wallet Not Connected',
+        'Please connect your wallet to create proposals.',
+        'warning'
+      );
+      return;
+    }
+
+    if (!eligibility?.isEligible) {
+      const minRequired = eligibility ? formatVotingPower(eligibility.minRequired) : '...';
+      const userPower = eligibility ? formatVotingPower(eligibility.userPower) : '0';
+      showAlert(
+        'Insufficient Voting Power',
+        `You need at least ${minRequired} locked PEPPER to create proposals.\n\nYour current voting power: ${userPower}`,
+        'warning'
+      );
+      return;
+    }
+
+    router.push('/governance/create');
+  }
 
   // Filter proposals by type
   const proposals = allProposals?.filter((p) => {
@@ -151,6 +215,18 @@ export default function GovernanceScreen() {
           {renderContent()}
         </View>
       </View>
+
+      {/* Create Proposal FAB */}
+      <CreateProposalFAB onPress={handleCreateProposal} />
+
+      {/* Alert Modal */}
+      <PixelAlertModal
+        visible={alert.visible}
+        onClose={hideAlert}
+        title={alert.title}
+        message={alert.message}
+        type={alert.type}
+      />
     </ThemedView>
   );
 }
