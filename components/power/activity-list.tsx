@@ -16,8 +16,8 @@ interface ActivityListProps {
 export function ActivityList({ activities, isLoading }: ActivityListProps) {
   if (isLoading) {
     return (
-      <Card variant="dark" className="p-4">
-        <Text className="font-['PPNeueBit-Bold'] text-center text-sm text-white/60">
+      <Card variant="default" className="p-4">
+        <Text className="font-['PPNeueBit-Bold'] text-center text-sm text-[#1A2A22]/60">
           Loading activities...
         </Text>
       </Card>
@@ -26,11 +26,11 @@ export function ActivityList({ activities, isLoading }: ActivityListProps) {
 
   if (activities.length === 0) {
     return (
-      <Card variant="dark" className="p-4">
-        <Text className="font-['PPNeueBit-Bold'] text-center text-sm text-white/60">
+      <Card variant="default" className="p-4">
+        <Text className="font-['PPNeueBit-Bold'] text-center text-sm text-[#1A2A22]/60">
           No activity yet
         </Text>
-        <Text className="mt-2 font-['PPNeueBit-Bold'] text-center text-xs text-white/40">
+        <Text className="mt-2 font-['PPNeueBit-Bold'] text-center text-xs text-[#1A2A22]/40">
           Start participating in governance to earn reputation!
         </Text>
       </Card>
@@ -42,7 +42,7 @@ export function ActivityList({ activities, isLoading }: ActivityListProps) {
       <Text className="mb-3 font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-white/60">
         Activity
       </Text>
-      <Card variant="dark">
+      <Card variant="default">
         <FlatList
           data={activities}
           keyExtractor={(item) => item.id}
@@ -71,21 +71,21 @@ function ActivityItem({
 }) {
   return (
     <View
-      className={`flex-row items-center gap-3 p-4 ${!isLast ? 'border-b-2 border-black/30' : ''}`}
+      className={`flex-row items-center gap-3 p-4 ${!isLast ? 'border-b-2 border-black/10' : ''}`}
     >
       {/* Icon */}
-      <View className="h-10 w-10 items-center justify-center border-2 border-black bg-[#333]">
+      <View className="h-10 w-10 items-center justify-center border-2 border-black bg-[#F3F6F4]">
         <Text className="text-lg">{activity.icon}</Text>
       </View>
 
       {/* Content */}
       <View className="flex-1">
         <Text
-          className={`font-['PPNeueBit-Bold'] text-sm ${activity.isRankUp ? 'text-yellow-400' : 'text-white'}`}
+          className={`font-['PPNeueBit-Bold'] text-sm ${activity.isRankUp ? 'text-[#B8860B]' : 'text-[#1A2A22]'}`}
         >
           {activity.title}
         </Text>
-        <Text className="font-['PPNeueBit-Bold'] text-xs text-white/50">
+        <Text className="font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/50">
           {activity.description}
         </Text>
       </View>
@@ -95,10 +95,10 @@ function ActivityItem({
         <Text
           className={`font-['PPNeueBit-Bold'] text-sm ${
             activity.points > 0
-              ? 'text-[#00FF80]'
+              ? 'text-[#10B981]'
               : activity.points < 0
                 ? 'text-[#FF006E]'
-                : 'text-white/40'
+                : 'text-[#1A2A22]/40'
           }`}
         >
           {activity.pointsDisplay}

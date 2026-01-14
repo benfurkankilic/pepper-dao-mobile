@@ -18,7 +18,7 @@ export function ReputationCard({ profile }: ReputationCardProps) {
   return (
     <View className="flex-row gap-3">
       {/* Rank */}
-      <Card variant="dark" className="flex-1 flex-row items-center gap-3 p-3">
+      <Card variant="default" className="flex-1 flex-row items-center gap-3 p-3">
         <Image
           source={RANK_IMAGES[profile.rank]}
           style={{ width: 48, height: 48 }}
@@ -28,18 +28,18 @@ export function ReputationCard({ profile }: ReputationCardProps) {
           <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#8B5CF6]">
             Rank
           </Text>
-          <Text className="font-['PPNeueBit-Bold'] text-xl text-white">
+          <Text className="font-['PPNeueBit-Bold'] text-xl text-[#1A2A22]">
             {RANK_LABELS[profile.rank]}
           </Text>
         </View>
       </Card>
 
       {/* Reputation */}
-      <Card variant="dark" className="flex-1 items-center justify-center p-3">
-        <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#00FF80]">
+      <Card variant="default" className="flex-1 items-center justify-center p-3">
+        <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#1E4F3A]">
           Reputation
         </Text>
-        <Text className="font-['PPNeueBit-Bold'] text-3xl text-white">
+        <Text className="font-['PPNeueBit-Bold'] text-3xl text-[#1A2A22]">
           {profile.reputation_points.toLocaleString()}
         </Text>
       </Card>

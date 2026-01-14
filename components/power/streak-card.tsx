@@ -22,13 +22,13 @@ export function StreakCard({ profile, activeStreak }: StreakCardProps) {
   const isActive = profile.current_streak_weeks > 0;
 
   return (
-    <Card variant="dark" className="p-4">
+    <Card variant="default" className="p-4">
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#F59E0B]">
           Current Streak
         </Text>
         {profile.longest_streak_weeks > 0 && (
-          <Text className="font-['PPNeueBit-Bold'] text-xs text-white/60">
+          <Text className="font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/60">
             Best: {formatStreakWeeks(profile.longest_streak_weeks)}
           </Text>
         )}
@@ -38,11 +38,11 @@ export function StreakCard({ profile, activeStreak }: StreakCardProps) {
       <View className="mb-3 flex-row items-center gap-3">
         <Text className="text-3xl">{isActive ? '🔥' : '❄️'}</Text>
         <View>
-          <Text className="font-['PPNeueBit-Bold'] text-2xl text-white">
+          <Text className="font-['PPNeueBit-Bold'] text-2xl text-[#1A2A22]">
             {formatStreakWeeks(profile.current_streak_weeks)}
           </Text>
           {isActive && activeStreak && (
-            <Text className="font-['PPNeueBit-Bold'] text-xs text-white/60">
+            <Text className="font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/60">
               Started {new Date(activeStreak.start_date).toLocaleDateString()}
             </Text>
           )}
@@ -52,14 +52,14 @@ export function StreakCard({ profile, activeStreak }: StreakCardProps) {
       {/* Progress Bar */}
       {nextMilestone && (
         <View className="mb-2">
-          <View className="h-3 w-full overflow-hidden border-2 border-white/20 bg-[#333]">
+          <View className="h-3 w-full overflow-hidden border-2 border-black/20 bg-[#E5E5E5]">
             <View
               className="h-full bg-[#F59E0B]"
               style={{ width: `${progress}%` }}
             />
           </View>
           <View className="mt-1 flex-row justify-between">
-            <Text className="font-['PPNeueBit-Bold'] text-xs text-white/60">
+            <Text className="font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/60">
               {profile.current_streak_weeks}w
             </Text>
             <Text className="font-['PPNeueBit-Bold'] text-xs text-[#F59E0B]">
@@ -70,7 +70,7 @@ export function StreakCard({ profile, activeStreak }: StreakCardProps) {
       )}
 
       {/* Status Message */}
-      <Text className="font-['PPNeueBit-Bold'] text-xs text-white/80">
+      <Text className="font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/80">
         {statusMessage}
       </Text>
     </Card>

@@ -36,8 +36,8 @@ export function WalletSection({ showStaking = true }: WalletSectionProps) {
 
   return (
     <View className="gap-4">
-      <Card variant="dark" className="p-4">
-        <Text className="mb-3 font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#00FF80]">
+      <Card variant="default" className="p-4">
+        <Text className="mb-3 font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#1E4F3A]">
           Wallet
         </Text>
 
@@ -46,10 +46,10 @@ export function WalletSection({ showStaking = true }: WalletSectionProps) {
         {isConnected && (
           <View className="mt-3 space-y-2">
             <View className="flex-row items-center justify-between">
-              <Text className="font-['PPNeueBit-Bold'] text-xs text-white/60">
+              <Text className="font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/60">
                 Address
               </Text>
-              <Text className="font-['PPNeueBit-Bold'] text-sm text-white">
+              <Text className="font-['PPNeueBit-Bold'] text-sm text-[#1A2A22]">
                 {displayAddress}
               </Text>
             </View>

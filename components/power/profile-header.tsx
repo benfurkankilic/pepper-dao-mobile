@@ -76,9 +76,9 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   // Don't show header if already at max rank
   if (!rankDisplay.nextRank) {
     return (
-      <Card variant="dark" className="p-4">
+      <Card variant="default" className="p-4">
         <View className="items-center">
-          <Text className="font-['PPNeueBit-Bold'] text-sm text-[#FFD700]">
+          <Text className="font-['PPNeueBit-Bold'] text-sm text-[#B8860B]">
             🏆 Maximum Rank Achieved!
           </Text>
         </View>
@@ -91,42 +91,42 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const progressPercent = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
   return (
-    <Card variant="dark" className="p-4">
+    <Card variant="default" className="p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#FFD700]">
+        <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#B8860B]">
           Next Rank
         </Text>
-        <Text className="font-['PPNeueBit-Bold'] text-sm text-white">
+        <Text className="font-['PPNeueBit-Bold'] text-sm text-[#1A2A22]">
           {RANK_LABELS[rankDisplay.nextRank]}
         </Text>
       </View>
 
       {/* Progress Bar */}
-      <View className="mt-3 h-4 w-full overflow-hidden border-2 border-black bg-[#333]">
+      <View className="mt-3 h-4 w-full overflow-hidden border-2 border-black bg-[#E5E5E5]">
         <View
           className="h-full bg-[#FFD700]"
           style={{ width: `${progressPercent}%` }}
         />
       </View>
 
-      <Text className="mt-2 font-['PPNeueBit-Bold'] text-xs text-white/60">
+      <Text className="mt-2 font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/60">
         {completedTasks}/{tasks.length} completed
       </Text>
 
       {/* Task List */}
       <View className="mt-3">
-        <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-white/60">
+        <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#1A2A22]/60">
           Tasks
         </Text>
         <View className="gap-2">
           {tasks.map((task, index) => (
           <View key={index} className="flex-row items-center gap-2">
-            <Text className={`text-sm ${task.completed ? 'text-[#00FF80]' : 'text-white/40'}`}>
+            <Text className={`text-sm ${task.completed ? 'text-[#10B981]' : 'text-[#1A2A22]/40'}`}>
               {task.completed ? '✓' : '○'}
             </Text>
             <Text
               className={`flex-1 font-['PPNeueBit-Bold'] text-xs ${
-                task.completed ? 'text-white/40 line-through' : 'text-white'
+                task.completed ? 'text-[#1A2A22]/40 line-through' : 'text-[#1A2A22]'
               }`}
             >
               {task.label}
