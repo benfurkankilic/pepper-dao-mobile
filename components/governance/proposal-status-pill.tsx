@@ -32,7 +32,7 @@ function getStatusColors(status: GovernanceStatus): {
     };
   }
 
-  if (status === 'DEFEATED') {
+  if (status === 'REJECTED') {
     return {
       background: '#FF006E',
       text: '#FFFFFF',

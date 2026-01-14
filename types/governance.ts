@@ -3,14 +3,14 @@
  * - PENDING: Before startDate
  * - ACTIVE: Between startDate and endDate, not executed
  * - EXECUTED: Proposal has been executed
- * - DEFEATED: Past endDate without reaching approval threshold
+ * - REJECTED: Past endDate without reaching approval threshold
  * - SUCCEEDED: Approval reached but not yet executed
  */
 export type GovernanceStatus =
   | 'ACTIVE'
   | 'EXECUTED'
   | 'PENDING'
-  | 'DEFEATED'
+  | 'REJECTED'
   | 'SUCCEEDED';
 
 /**
@@ -132,7 +132,7 @@ export const GOVERNANCE_STATUS_LABELS: Record<GovernanceStatus, string> = {
   ACTIVE: 'Active',
   EXECUTED: 'Executed',
   PENDING: 'Pending',
-  DEFEATED: 'Defeated',
+  REJECTED: 'Rejected',
   SUCCEEDED: 'Succeeded',
 };
 
@@ -158,7 +158,7 @@ export function deriveProposalStatus(proposal: {
   }
 
   if (now > endTime) {
-    return proposal.approvalReached ? 'SUCCEEDED' : 'DEFEATED';
+    return proposal.approvalReached ? 'SUCCEEDED' : 'REJECTED';
   }
 
   return 'ACTIVE';
@@ -189,7 +189,7 @@ export function generateTimeLabel(proposal: {
     return `${formatTimeRemaining(endTime - now)} left`;
   }
 
-  if (proposal.status === 'DEFEATED' || proposal.status === 'SUCCEEDED') {
+  if (proposal.status === 'REJECTED' || proposal.status === 'SUCCEEDED') {
     return `Ended ${formatRelativeTime(endTime)}`;
   }
 

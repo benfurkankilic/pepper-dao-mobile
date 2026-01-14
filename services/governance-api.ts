@@ -61,11 +61,13 @@ function mapStatus(status: string): GovernanceStatus {
     case 'PENDING':
       return 'PENDING';
     case 'DEFEATED':
-      return 'DEFEATED';
+      return 'REJECTED'; // Map DEFEATED to REJECTED for UI
+    case 'REJECTED':
+      return 'REJECTED';
     case 'SUCCEEDED':
       return 'SUCCEEDED';
     case 'CANCELED':
-      return 'DEFEATED'; // Map CANCELED to DEFEATED for UI purposes
+      return 'REJECTED'; // Map CANCELED to REJECTED for UI purposes
     default:
       return 'ACTIVE';
   }
@@ -183,8 +185,8 @@ export async function fetchGovernanceProposals(
 
     // Apply status filter at database level for better performance
     if (filter?.status && filter.status !== 'ALL') {
-      // Map our status to database status
-      const dbStatus = filter.status === 'DEFEATED' ? 'DEFEATED' : filter.status;
+      // Map our UI status to database status (REJECTED -> DEFEATED in DB)
+      const dbStatus = filter.status === 'REJECTED' ? 'DEFEATED' : filter.status;
       query = query.eq('status', dbStatus);
     }
 

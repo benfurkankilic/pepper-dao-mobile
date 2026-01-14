@@ -40,7 +40,85 @@ interface VotingPreviewProps {
 function VotingPreview(props: VotingPreviewProps) {
   const { proposal } = props;
 
+  // For PEP proposals, show stage-based progress
+  if (proposal.type === 'PEP') {
+    const currentStage = (proposal as any).currentStage ?? 0;
+    const approvals = proposal.approvals || 0;
+    const minApprovals = proposal.minApprovals || 3;
+    const approvalPercent = minApprovals > 0 ? (approvals / minApprovals) * 100 : 0;
+    const stage1Passed = approvals >= minApprovals;
+    const isRejected = proposal.status === 'REJECTED';
+    const stage1NotReached = isRejected && !stage1Passed;
+
+    // Check if we have Token Voting data (Stage 2)
+    const hasVotes =
+      proposal.tally &&
+      (BigInt(proposal.tally.yes || '0') > 0n ||
+        BigInt(proposal.tally.no || '0') > 0n ||
+        BigInt(proposal.tally.abstain || '0') > 0n);
+
+    if (currentStage >= 1 && hasVotes) {
+      // Show Token Voting progress for Stage 2
+      const distribution = getVoteDistribution(proposal.tally!);
+      const supportPercent = basisPointsToPercentage(
+        calculateCurrentSupport(proposal.tally!),
+      );
+
+      return (
+        <View className="mt-2 border-t-2 border-white/20 pt-2">
+          <Text className="mb-1 text-[9px] text-white/40">Stage 2: Community Vote</Text>
+          <View className="mb-1 h-2 flex-row border-2 border-white/40">
+            {distribution.yes > 0 && (
+              <View style={{ width: `${distribution.yes}%`, backgroundColor: '#00FF80', height: '100%' }} />
+            )}
+            {distribution.abstain > 0 && (
+              <View style={{ width: `${distribution.abstain}%`, backgroundColor: '#6B7280', height: '100%' }} />
+            )}
+            {distribution.no > 0 && (
+              <View style={{ width: `${distribution.no}%`, backgroundColor: '#FF006E', height: '100%' }} />
+            )}
+          </View>
+          <Text className="text-[9px] text-white/60">{supportPercent.toFixed(0)}% Support</Text>
+        </View>
+      );
+    }
+
+    // Show Multisig approval progress for Stage 1
+    return (
+      <View className="mt-2 border-t-2 border-white/20 pt-2">
+        <View className="mb-1 flex-row items-center justify-between">
+          <Text className="text-[9px] text-white/40">Stage 1: Spicy Ministers</Text>
+          {stage1NotReached && (
+            <Text className="text-[9px] font-bold" style={{ color: '#FF006E' }}>NOT REACHED</Text>
+          )}
+        </View>
+        <View className="mb-1 h-2 flex-row border-2 border-white/40">
+          <View
+            style={{
+              width: `${Math.min(approvalPercent, 100)}%`,
+              backgroundColor: stage1Passed ? '#00FF80' : stage1NotReached ? '#FF006E' : '#FFEA00',
+              height: '100%',
+            }}
+          />
+        </View>
+        <Text className="text-[9px] text-white/60">
+          {approvals} of {minApprovals} approvals
+        </Text>
+      </View>
+    );
+  }
+
+  // For non-PEP proposals with voting data
   if (!proposal.tally || !proposal.votingSettings || !proposal.totalVotingPower) {
+    return null;
+  }
+
+  const hasVotes =
+    BigInt(proposal.tally.yes || '0') > 0n ||
+    BigInt(proposal.tally.no || '0') > 0n ||
+    BigInt(proposal.tally.abstain || '0') > 0n;
+
+  if (!hasVotes) {
     return null;
   }
 
@@ -54,46 +132,21 @@ function VotingPreview(props: VotingPreviewProps) {
 
   return (
     <View className="mt-2 border-t-2 border-white/20 pt-2">
-      {/* Mini Progress Bar */}
       <View className="mb-1 h-2 flex-row border-2 border-white/40">
-        {distribution.yes > 0 ? (
-          <View
-            style={{
-              width: `${distribution.yes}%`,
-              backgroundColor: '#00FF80',
-              height: '100%',
-            }}
-          />
-        ) : null}
-        {distribution.abstain > 0 ? (
-          <View
-            style={{
-              width: `${distribution.abstain}%`,
-              backgroundColor: '#6B7280',
-              height: '100%',
-            }}
-          />
-        ) : null}
-        {distribution.no > 0 ? (
-          <View
-            style={{
-              width: `${distribution.no}%`,
-              backgroundColor: '#FF006E',
-              height: '100%',
-            }}
-          />
-        ) : null}
+        {distribution.yes > 0 && (
+          <View style={{ width: `${distribution.yes}%`, backgroundColor: '#00FF80', height: '100%' }} />
+        )}
+        {distribution.abstain > 0 && (
+          <View style={{ width: `${distribution.abstain}%`, backgroundColor: '#6B7280', height: '100%' }} />
+        )}
+        {distribution.no > 0 && (
+          <View style={{ width: `${distribution.no}%`, backgroundColor: '#FF006E', height: '100%' }} />
+        )}
       </View>
-
-      {/* Stats */}
       <View className="flex-row items-center gap-3">
-        <Text className="text-[9px] text-white/60">
-          {supportPercent.toFixed(0)}% Support
-        </Text>
+        <Text className="text-[9px] text-white/60">{supportPercent.toFixed(0)}% Support</Text>
         <Text className="text-[9px] text-white/60">•</Text>
-        <Text className="text-[9px] text-white/60">
-          {participationPercent.toFixed(0)}% Participation
-        </Text>
+        <Text className="text-[9px] text-white/60">{participationPercent.toFixed(0)}% Participation</Text>
       </View>
     </View>
   );
@@ -152,8 +205,8 @@ export function ProposalCard(props: ProposalCardProps) {
         by {shortenAddress(proposal.proposer)}
       </Text>
 
-      {/* Voting Preview */}
-      <VotingPreview proposal={proposal} />
+      {/* Voting Preview - only show for non-ADMIN proposals */}
+      {proposal.type !== 'ADMIN' ? <VotingPreview proposal={proposal} /> : null}
     </Pressable>
   );
 }

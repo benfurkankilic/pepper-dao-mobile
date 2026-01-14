@@ -87,7 +87,7 @@ function DetailsTab(props: DetailsTabProps) {
         </Text>
       </View>
 
-      {/* Approvals - different display for ADMIN vs other types */}
+      {/* Execution/Governance - different display based on type */}
       {proposal.type === 'ADMIN' ? (
         <View style={{ marginBottom: 16 }}>
           <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 4 }}>
@@ -99,6 +99,87 @@ function DetailsTab(props: DetailsTabProps) {
           <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.6)', marginTop: 4 }}>
             Proposals created by admins pass automatically without any governance.
           </Text>
+        </View>
+      ) : proposal.type === 'PEP' ? (
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 8 }}>
+            Governance Process
+          </Text>
+
+          {/* Stage 1: Spicy Ministers */}
+          {(() => {
+            const stage1Passed = (proposal.approvals || 0) >= (proposal.minApprovals || 0);
+            const isRejected = proposal.status === 'REJECTED';
+            const stage1NotReached = isRejected && !stage1Passed;
+
+            return (
+              <View style={{
+                backgroundColor: stage1NotReached ? 'rgba(255, 0, 110, 0.1)' : 'rgba(255, 234, 0, 0.1)',
+                padding: 12,
+                marginBottom: 8,
+                borderLeftWidth: 3,
+                borderLeftColor: stage1Passed ? '#00FF80' : stage1NotReached ? '#FF006E' : '#FFEA00',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFF' }}>
+                    Stage 1: Spicy Ministers
+                  </Text>
+                  {stage1Passed ? (
+                    <Text style={{ fontSize: 10, color: '#00FF80', fontWeight: 'bold' }}>PASSED</Text>
+                  ) : stage1NotReached ? (
+                    <Text style={{ fontSize: 10, color: '#FF006E', fontWeight: 'bold' }}>NOT REACHED</Text>
+                  ) : (
+                    <Text style={{ fontSize: 10, color: '#FFEA00', fontWeight: 'bold' }}>IN PROGRESS</Text>
+                  )}
+                </View>
+                <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', marginBottom: 8 }}>
+                  Multisig approval by designated ministers
+                </Text>
+                <View style={{ height: 6, backgroundColor: 'rgba(255, 255, 255, 0.2)', marginBottom: 4 }}>
+                  <View style={{
+                    height: '100%',
+                    width: `${(proposal.minApprovals || 0) > 0 ? Math.min(((proposal.approvals || 0) / (proposal.minApprovals || 1)) * 100, 100) : 0}%`,
+                    backgroundColor: stage1Passed ? '#00FF80' : stage1NotReached ? '#FF006E' : '#FFEA00',
+                  }} />
+                </View>
+                <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)' }}>
+                  {proposal.approvals || 0} of {proposal.minApprovals || 0} approvals
+                </Text>
+              </View>
+            );
+          })()}
+
+          {/* Stage 2: Community Signoff */}
+          {(() => {
+            const stage1Passed = (proposal.approvals || 0) >= (proposal.minApprovals || 0);
+            const isRejected = proposal.status === 'REJECTED';
+            const stage2NotReached = isRejected && !stage1Passed;
+
+            return (
+              <View style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                padding: 12,
+                borderLeftWidth: 3,
+                borderLeftColor: stage1Passed ? '#60A5FA' : 'rgba(255, 255, 255, 0.3)',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFF' }}>
+                    Stage 2: Community Signoff
+                  </Text>
+                  {stage1Passed ? (
+                    <Text style={{ fontSize: 10, color: '#60A5FA', fontWeight: 'bold' }}>ACTIVE</Text>
+                  ) : stage2NotReached ? (
+                    <Text style={{ fontSize: 10, color: '#FF006E', fontWeight: 'bold' }}>NOT REACHED</Text>
+                  ) : (
+                    <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.4)', fontWeight: 'bold' }}>WAITING</Text>
+                  )}
+                </View>
+                <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Token voting by PEPPER holders
+                </Text>
+              </View>
+            );
+          })()}
         </View>
       ) : (
         <View style={{ marginBottom: 16 }}>
@@ -168,6 +249,126 @@ function VotingTab(props: VotingTabProps) {
             Proposals created by admins pass automatically without any governance.
           </Text>
         </View>
+      </View>
+    );
+  }
+
+  // PEP proposals have 2-stage voting
+  if (proposal.type === 'PEP') {
+    const stage1Passed = (proposal.approvals || 0) >= (proposal.minApprovals || 0);
+    const isRejected = proposal.status === 'REJECTED';
+    const stage1NotReached = isRejected && !stage1Passed;
+    const hasVotingData = proposal.tally && proposal.votingSettings && proposal.totalVotingPower;
+
+    return (
+      <View>
+        {/* Stage 1: Spicy Ministers */}
+        <View style={{ padding: 16, borderBottomWidth: 2, borderBottomColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#FFFFFF' }}>
+              Stage 1: Spicy Ministers
+            </Text>
+            {stage1Passed ? (
+              <View style={{ backgroundColor: '#00FF80', paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#000000' }}>PASSED</Text>
+              </View>
+            ) : stage1NotReached ? (
+              <View style={{ backgroundColor: '#FF006E', paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#FFFFFF' }}>NOT REACHED</Text>
+              </View>
+            ) : (
+              <View style={{ backgroundColor: '#FFEA00', paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#000000' }}>IN PROGRESS</Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.6)', marginBottom: 12 }}>
+            Multisig approval by designated ministers
+          </Text>
+
+          {/* Progress bar */}
+          <View style={{ height: 8, backgroundColor: 'rgba(255, 255, 255, 0.2)', marginBottom: 8, borderWidth: 2, borderColor: 'rgba(255, 255, 255, 0.4)' }}>
+            <View style={{
+              height: '100%',
+              width: `${(proposal.minApprovals || 0) > 0 ? Math.min(((proposal.approvals || 0) / (proposal.minApprovals || 1)) * 100, 100) : 0}%`,
+              backgroundColor: stage1Passed ? '#00FF80' : stage1NotReached ? '#FF006E' : '#FFEA00',
+            }} />
+          </View>
+
+          <Text style={{ fontSize: 12, color: '#FFFFFF' }}>
+            {proposal.approvals || 0} of {proposal.minApprovals || 0} approvals received
+          </Text>
+        </View>
+
+        {/* Stage 2: Community Signoff */}
+        <View style={{ padding: 16, borderBottomWidth: 2, borderBottomColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#FFFFFF' }}>
+              Stage 2: Community Signoff
+            </Text>
+            {stage1Passed ? (
+              <View style={{ backgroundColor: '#60A5FA', paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#000000' }}>ACTIVE</Text>
+              </View>
+            ) : stage1NotReached ? (
+              <View style={{ backgroundColor: '#FF006E', paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#FFFFFF' }}>NOT REACHED</Text>
+              </View>
+            ) : (
+              <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.3)', paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'rgba(255, 255, 255, 0.6)' }}>WAITING</Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.6)', marginBottom: 12 }}>
+            Token voting by PEPPER holders
+          </Text>
+
+          {hasVotingData && stage1Passed ? (
+            <View>
+              <VotingBreakdown
+                tally={proposal.tally!}
+                totalVotingPower={proposal.totalVotingPower!}
+              />
+            </View>
+          ) : stage1NotReached ? (
+            <View style={{ backgroundColor: 'rgba(255, 0, 110, 0.1)', padding: 12 }}>
+              <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.6)', textAlign: 'center' }}>
+                Stage not reached
+              </Text>
+            </View>
+          ) : !stage1Passed ? (
+            <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', padding: 12 }}>
+              <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.6)', textAlign: 'center' }}>
+                Stage 2 voting will begin after Stage 1 approval
+              </Text>
+            </View>
+          ) : (
+            <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', padding: 12 }}>
+              <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.6)', textAlign: 'center' }}>
+                No votes cast yet
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Vote Buttons - only show if Stage 1 passed and not rejected */}
+        {stage1Passed && hasVotingData && !isRejected ? (
+          <>
+            <ThresholdIndicators
+              tally={proposal.tally!}
+              votingSettings={proposal.votingSettings!}
+              totalVotingPower={proposal.totalVotingPower!}
+            />
+            <View style={{ height: 2, backgroundColor: '#FFFFFF' }} />
+            <VoteButtons
+              disabled={proposal.status !== 'ACTIVE'}
+              userVote={proposal.userVote?.voteOption}
+            />
+          </>
+        ) : null}
       </View>
     );
   }

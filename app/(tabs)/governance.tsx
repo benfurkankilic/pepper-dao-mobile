@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { FlashList } from '@shopify/flash-list';
 
@@ -8,31 +8,25 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FOREST_GREEN } from '@/constants/theme';
 import { useGovernanceProposals } from '@/hooks/use-governance';
-import type { GovernanceProposal, GovernanceStatus } from '@/types/governance';
+import type { GovernanceProposal, GovernanceProposalType } from '@/types/governance';
 
-type GovernanceFilterTab = 'ALL' | 'ACTIVE' | 'EXECUTED' | 'PENDING';
+type ProposalTypeFilter = 'ALL' | 'ADMIN' | 'PEP';
 
-function getFilterLabel(tab: GovernanceFilterTab): string {
-  if (tab === 'ACTIVE') return 'Active';
-  if (tab === 'EXECUTED') return 'Executed';
-  if (tab === 'PENDING') return 'Pending';
-  return 'All';
-}
-
-function getStatusFromTab(tab: GovernanceFilterTab): GovernanceStatus | 'ALL' {
-  if (tab === 'ACTIVE') return 'ACTIVE';
-  if (tab === 'EXECUTED') return 'EXECUTED';
-  if (tab === 'PENDING') return 'PENDING';
-  return 'ALL';
-}
+const FILTER_TABS: Array<{ key: ProposalTypeFilter; label: string }> = [
+  { key: 'ALL', label: 'All' },
+  { key: 'ADMIN', label: 'Admin' },
+  { key: 'PEP', label: 'Pepper Evolution' },
+];
 
 export default function GovernanceScreen() {
-  const [activeTab, setActiveTab] = useState<GovernanceFilterTab>('ALL');
+  const [activeTab, setActiveTab] = useState<ProposalTypeFilter>('ALL');
 
-  const statusFilter: GovernanceStatus | 'ALL' = getStatusFromTab(activeTab);
+  const { data: allProposals, isLoading, isError, refetch } = useGovernanceProposals({});
 
-  const { data: proposals, isLoading, isError, refetch } = useGovernanceProposals({
-    status: statusFilter,
+  // Filter proposals by type
+  const proposals = allProposals?.filter((p) => {
+    if (activeTab === 'ALL') return true;
+    return p.type === activeTab;
   });
 
   function renderContent() {
@@ -115,33 +109,42 @@ export default function GovernanceScreen() {
           </View>
         </View>
 
-        <View className="mb-4 rounded-none border-4 border-white bg-[#1a1a1a] p-1">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: 'row' }}
-          >
-            {(['ALL', 'ACTIVE', 'EXECUTED', 'PENDING'] as Array<GovernanceFilterTab>).map((tab) => {
-              const isActive: boolean = activeTab === tab;
-              return (
-                <Pressable
-                  key={tab}
-                  onPress={() => setActiveTab(tab)}
-                  className={`mr-2 px-4 py-2 border-2 border-gray-400 ${
-                    isActive ? 'bg-[#FF006E]' : ''
-                  }`}
+        {/* Filter Tabs */}
+        <View
+          style={{
+            flexDirection: 'row',
+            borderBottomWidth: 2,
+            borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+            marginBottom: 16,
+          }}
+        >
+          {FILTER_TABS.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <Pressable
+                key={tab.key}
+                onPress={() => setActiveTab(tab.key)}
+                style={{
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  marginRight: 8,
+                  borderBottomWidth: 3,
+                  borderBottomColor: isActive ? '#FFEA00' : 'transparent',
+                  marginBottom: -2,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)',
+                  }}
                 >
-                  <Text
-                    className={`text-center text-[10px] font-bold uppercase tracking-wider ${
-                      isActive ? 'text-white' : 'text-white/80'
-                    }`}
-                  >
-                    {getFilterLabel(tab)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         <View className="flex-1">

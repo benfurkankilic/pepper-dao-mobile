@@ -507,6 +507,26 @@ Deno.serve(async (req: Request) => {
           console.error(`Failed to get Token Voting details for proposal ${proposalId}:`, e);
         }
 
+        // Get Multisig approval details for Stage 0
+        let multisigDetails: { approvals: number; minApprovals: number } | null = null;
+        try {
+          const msResult = await publicClient.readContract({
+            address: MULTISIG_ADDRESS,
+            abi: MULTISIG_ABI,
+            functionName: 'getProposal',
+            args: [proposalIdBigInt],
+          });
+
+          const msData = msResult as any;
+          multisigDetails = {
+            approvals: Number(msData[1] || 0),
+            minApprovals: Number(msData[2]?.minApprovals || 0),
+          };
+          console.log(`Multisig details for ${proposalId}: ${multisigDetails.approvals}/${multisigDetails.minApprovals}`);
+        } catch (e) {
+          console.error(`Failed to get Multisig details for proposal ${proposalId}:`, e);
+        }
+
         // Derive status
         let status = 'PENDING';
         if (executed) {
@@ -522,7 +542,12 @@ Deno.serve(async (req: Request) => {
             status = yes > no ? 'SUCCEEDED' : 'DEFEATED';
           }
         } else if (currentStage === 0) {
-          status = 'PENDING'; // Stage 0 - waiting for multisig approval
+          // Stage 0 - check multisig approval status
+          if (multisigDetails && multisigDetails.approvals >= multisigDetails.minApprovals) {
+            status = 'SUCCEEDED';
+          } else {
+            status = 'PENDING';
+          }
         }
 
         // Use event dates (from ProposalCreated event) - these are the correct values
@@ -586,6 +611,12 @@ Deno.serve(async (req: Request) => {
           transaction_hash: log.transactionHash,
           creator: (log.args.creator as string).toLowerCase(),
         };
+
+        // Add multisig approval data for Stage 0
+        if (multisigDetails) {
+          (proposalData as any).approvals = multisigDetails.approvals;
+          (proposalData as any).min_approvals = multisigDetails.minApprovals;
+        }
 
         newProposals.push(proposalData);
       } catch (e) {
