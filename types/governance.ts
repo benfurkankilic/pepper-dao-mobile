@@ -122,8 +122,6 @@ export interface GovernanceProposal {
   totalVotingPower?: string;
   /** Current user's vote (if any) */
   userVote?: UserVote;
-  /** Transaction hash of the proposal creation */
-  transactionHash?: string | null;
 }
 
 export interface GovernanceProposalFilter {

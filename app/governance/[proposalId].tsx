@@ -14,7 +14,7 @@ import { useGovernanceProposal } from '@/hooks/use-governance';
 import { formatBasisPointsAsPercentage } from '@/lib/voting-calculations';
 import type { GovernanceProposal } from '@/types/governance';
 
-const CHILIZ_EXPLORER_URL = 'https://scan.chiliz.com';
+const CHILIZ_EXPLORER_URL = 'https://chiliscan.com';
 
 function shortenAddress(address: string): string {
   if (address.length <= 10) {
@@ -23,8 +23,8 @@ function shortenAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function openTransactionInExplorer(txHash: string): void {
-  Linking.openURL(`${CHILIZ_EXPLORER_URL}/tx/${txHash}`);
+function openAddressInExplorer(address: string): void {
+  Linking.openURL(`${CHILIZ_EXPLORER_URL}/address/${address}`);
 }
 
 type TabType = 'details' | 'voting' | 'settings' | 'actions';
@@ -128,21 +128,15 @@ function DetailsTab(props: DetailsTabProps) {
         <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 4 }}>
           Proposed By
         </Text>
-        {proposal.transactionHash ? (
-          <Pressable
-            onPress={() => openTransactionInExplorer(proposal.transactionHash!)}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-          >
-            <Text style={{ fontSize: 12, color: '#60A5FA' }}>
-              {shortenAddress(proposal.proposer)}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#60A5FA' }}>↗</Text>
-          </Pressable>
-        ) : (
-          <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.8)' }}>
+        <Pressable
+          onPress={() => openAddressInExplorer(proposal.proposer)}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+        >
+          <Text style={{ fontSize: 12, color: '#60A5FA' }}>
             {shortenAddress(proposal.proposer)}
           </Text>
-        )}
+          <Text style={{ fontSize: 10, color: '#60A5FA' }}>↗</Text>
+        </Pressable>
       </View>
     </View>
   );
