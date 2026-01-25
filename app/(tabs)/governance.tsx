@@ -5,7 +5,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { formatUnits } from 'ethers';
 
-import { CreateProposalFAB, ProposalCard } from '@/components/governance';
+import { ProposalCard } from '@/components/governance';
 import { PixelAlertModal } from '@/components/ui/pixel-alert-modal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -64,25 +64,31 @@ export default function GovernanceScreen() {
   }
 
   function handleCreateProposal() {
-    if (!isConnected) {
-      showAlert(
-        'Wallet Not Connected',
-        'Please connect your wallet to create proposals.',
-        'warning'
-      );
+    // In DEBUG mode, bypass eligibility checks
+    if (__DEV__) {
+      router.push('/governance/create');
       return;
     }
 
-    if (!eligibility?.isEligible) {
-      const minRequired = eligibility ? formatVotingPower(eligibility.minRequired) : '...';
-      const userPower = eligibility ? formatVotingPower(eligibility.userPower) : '0';
-      showAlert(
-        'Insufficient Voting Power',
-        `You need at least ${minRequired} locked PEPPER to create proposals.\n\nYour current voting power: ${userPower}`,
-        'warning'
-      );
-      return;
-    }
+    // if (!isConnected) {
+    //   showAlert(
+    //     'Wallet Not Connected',
+    //     'Please connect your wallet to create proposals.',
+    //     'warning'
+    //   );
+    //   return;
+    // }
+
+    // if (!eligibility?.isEligible) {
+    //   const minRequired = eligibility ? formatVotingPower(eligibility.minRequired) : '...';
+    //   const userPower = eligibility ? formatVotingPower(eligibility.userPower) : '0';
+    //   showAlert(
+    //     'Insufficient Voting Power',
+    //     `You need at least ${minRequired} locked PEPPER to create proposals.\n\nYour current voting power: ${userPower}`,
+    //     'warning'
+    //   );
+    //   return;
+    // }
 
     router.push('/governance/create');
   }
@@ -96,7 +102,7 @@ export default function GovernanceScreen() {
   function renderContent() {
     if (isLoading && !proposals) {
       return (
-        <View className="flex-1 items-center justify-center py-16">
+        <View className="items-center justify-center py-16">
           <ActivityIndicator size="large" color="#FFFFFF" />
           <Text className="mt-4 text-xs uppercase tracking-wider text-white">
             Loading proposals...
@@ -107,7 +113,7 @@ export default function GovernanceScreen() {
 
     if (isError) {
       return (
-        <View className="flex-1 items-center justify-center py-16">
+        <View className="items-center justify-center py-16">
           <Text className="mb-3 text-sm text-white">
             Unable to load governance proposals.
           </Text>
@@ -127,7 +133,7 @@ export default function GovernanceScreen() {
 
     if (!proposals || proposals.length === 0) {
       return (
-        <View className="flex-1 items-center justify-center py-16">
+        <View className="items-center justify-center py-16">
           <Text className="mb-2 text-sm text-white">
             No proposals yet.
           </Text>
@@ -142,7 +148,9 @@ export default function GovernanceScreen() {
       <FlashList<GovernanceProposal>
         data={proposals}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        estimatedItemSize={180}
+        contentContainerStyle={{ paddingVertical: 4 }}
         renderItem={({ item }) => (
           <View className="mb-4">
             <ProposalCard proposal={item} />
@@ -157,20 +165,29 @@ export default function GovernanceScreen() {
       className="flex-1"
       style={{ backgroundColor: FOREST_GREEN }}
     >
-      <View className="flex-1 px-4 pb-6 pt-12">
-        <View className="mb-6 flex-row items-center">
-          <View className="flex-1 pr-4">
+      <View className="flex-1 px-4 pb-6 pt-16">
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between">
             <ThemedText
               type="display"
               lightColor="#FFFFFF"
-              className="mb-1 font-bold text-white"
+              className="font-bold text-white"
             >
               Proposals
             </ThemedText>
-            <Text className="text-xs text-white/80">
-              Review Pepper DAO governance proposals created in Aragon.
-            </Text>
+            <Pressable
+              onPress={handleCreateProposal}
+              className="flex-row items-center gap-1.5 border border-white/60 px-3 py-1.5 active:bg-white/10"
+            >
+              <Text className="font-['PPNeueBit-Bold'] text-sm text-white">+</Text>
+              <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-white">
+                Submit
+              </Text>
+            </Pressable>
           </View>
+          <Text className="text-xs text-white/80" style={{ maxWidth: 260 }}>
+            Review Pepper DAO governance proposals created in Aragon.
+          </Text>
         </View>
 
         {/* Filter Tabs */}
@@ -179,7 +196,6 @@ export default function GovernanceScreen() {
             flexDirection: 'row',
             borderBottomWidth: 2,
             borderBottomColor: 'rgba(255, 255, 255, 0.2)',
-            marginBottom: 16,
           }}
         >
           {FILTER_TABS.map((tab) => {
@@ -211,13 +227,10 @@ export default function GovernanceScreen() {
           })}
         </View>
 
-        <View className="flex-1">
+        <View style={{ flex: 1, marginTop: 16 }}>
           {renderContent()}
         </View>
       </View>
-
-      {/* Create Proposal FAB */}
-      <CreateProposalFAB onPress={handleCreateProposal} />
 
       {/* Alert Modal */}
       <PixelAlertModal

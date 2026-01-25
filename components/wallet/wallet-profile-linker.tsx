@@ -7,42 +7,51 @@ import { useWallet } from '@/contexts/wallet-context';
  * Wallet Profile Linker
  *
  * Automatically links wallet address to user profile when connected.
+ * Also handles rank recalculation for profiles that already have a wallet.
  * This component should be rendered inside both UserProvider and WalletProvider.
  */
 export function WalletProfileLinker({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useWallet();
   const { profile, updateWalletAddress } = useUser();
   const previousAddressRef = useRef<string | undefined>(undefined);
+  const hasRecalculatedRankRef = useRef(false);
 
   useEffect(() => {
     async function linkWallet() {
-      // Only link if:
-      // 1. Wallet is connected
-      // 2. We have an address
-      // 3. We have a profile
-      // 4. The address is different from what's stored
-      // 5. The address changed (to prevent loops)
-      if (
-        isConnected &&
-        address &&
-        profile &&
-        profile.wallet_address !== address &&
-        previousAddressRef.current !== address
-      ) {
-        console.log('[WalletProfileLinker] Linking wallet to profile:', address);
+      if (!isConnected || !address || !profile) {
+        // Clear references when disconnected
+        if (!isConnected) {
+          previousAddressRef.current = undefined;
+          hasRecalculatedRankRef.current = false;
+        }
+        return;
+      }
+
+      // Case 1: New wallet address - link it
+      const isNewAddress = profile.wallet_address !== address && previousAddressRef.current !== address;
+
+      // Case 2: Wallet already linked but rank is OBSERVER (needs recalculation)
+      // This handles profiles created before rank promotion was implemented
+      const needsRankRecalculation =
+        profile.wallet_address === address &&
+        profile.rank === 'OBSERVER' &&
+        !hasRecalculatedRankRef.current;
+
+      if (isNewAddress || needsRankRecalculation) {
+        const reason = isNewAddress ? 'new address' : 'rank recalculation';
+        console.log(`[WalletProfileLinker] Updating wallet (${reason}):`, address);
+
         previousAddressRef.current = address;
+        if (needsRankRecalculation) {
+          hasRecalculatedRankRef.current = true;
+        }
 
         try {
           await updateWalletAddress(address);
-          console.log('[WalletProfileLinker] Wallet linked successfully');
+          console.log('[WalletProfileLinker] Wallet updated successfully');
         } catch (error) {
-          console.error('[WalletProfileLinker] Failed to link wallet:', error);
+          console.error('[WalletProfileLinker] Failed to update wallet:', error);
         }
-      }
-
-      // Clear reference when disconnected
-      if (!isConnected) {
-        previousAddressRef.current = undefined;
       }
     }
 

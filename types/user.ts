@@ -20,6 +20,7 @@ export type VoteType = (typeof VOTE_TYPES)[number];
  * Activity event types that can earn or track reputation
  */
 export const EVENT_TYPES = [
+  'WALLET_CONNECTED',
   'FIRST_VOTE',
   'VOTE',
   'PROPOSAL_SUBMITTED',
@@ -57,6 +58,9 @@ export interface Profile {
   current_streak_weeks: number;
   longest_streak_weeks: number;
   last_activity_at: string | null;
+  has_voted: boolean;
+  has_engaged_proposal: boolean;
+  has_passed_proposal: boolean;
   created_at: string;
   updated_at: string;
 }

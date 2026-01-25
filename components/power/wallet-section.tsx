@@ -1,29 +1,25 @@
-import { Alert, Pressable, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 
-import { StakingPanel } from '@/components/staking';
+import { StakeModal } from '@/components/staking';
 import { Card } from '@/components/ui/card';
 import { NetworkMismatchWarning, WalletConnectButton, WalletStatusPill } from '@/components/wallet';
 import { useWallet } from '@/contexts/wallet-context';
-
-interface WalletSectionProps {
-  showStaking?: boolean;
-}
+import { useStaking } from '@/hooks/use-staking';
 
 /**
  * Wallet Section Component
  *
- * Displays wallet connection status and staking panel
+ * Displays wallet connection status and staking button
  */
-export function WalletSection({ showStaking = true }: WalletSectionProps) {
-  const {
-    isConnected,
-    isWrongNetwork,
-    disconnect,
-    switchToChiliz,
-    getShortAddress,
-  } = useWallet();
+export function WalletSection() {
+  const { isConnected, isWrongNetwork, disconnect, switchToChiliz } = useWallet();
+  const { formattedStakedBalance, isLoading: isStakingLoading } = useStaking();
+  const [showStakeModal, setShowStakeModal] = useState(false);
 
-  const displayAddress = getShortAddress() || 'Not connected';
+  const stakedAmount = parseFloat(formattedStakedBalance) || 0;
+  const hasStaked = stakedAmount > 0;
 
   async function handleDisconnect() {
     try {
@@ -34,27 +30,19 @@ export function WalletSection({ showStaking = true }: WalletSectionProps) {
     }
   }
 
+  function handleOpenStakeModal() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setShowStakeModal(true);
+  }
+
   return (
-    <View className="gap-4">
-      <Card variant="default" className="p-4">
-        <Text className="mb-3 font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#1E4F3A]">
+    <>
+      <Card variant="dark" className="p-4">
+        <Text className="mb-3 font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-[#00FF80]">
           Wallet
         </Text>
 
         <WalletStatusPill />
-
-        {isConnected && (
-          <View className="mt-3 space-y-2">
-            <View className="flex-row items-center justify-between">
-              <Text className="font-['PPNeueBit-Bold'] text-xs text-[#1A2A22]/60">
-                Address
-              </Text>
-              <Text className="font-['PPNeueBit-Bold'] text-sm text-[#1A2A22]">
-                {displayAddress}
-              </Text>
-            </View>
-          </View>
-        )}
 
         {isWrongNetwork && (
           <View className="mt-3">
@@ -63,7 +51,27 @@ export function WalletSection({ showStaking = true }: WalletSectionProps) {
         )}
 
         <View className="mt-4 gap-2">
-          <WalletConnectButton />
+          {!isConnected && <WalletConnectButton />}
+
+          {isConnected && !isWrongNetwork && (
+            <Pressable
+              onPress={handleOpenStakeModal}
+              className="flex-row items-center justify-center border-4 border-black bg-[#FFC043] px-4 py-3 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+            >
+              <Text className="font-['PPNeueBit-Bold'] text-sm uppercase text-black">
+                {hasStaked ? 'Manage Stake' : 'Stake PEPPER'}
+              </Text>
+              <View className="absolute bottom-0 right-4 top-0 flex-row items-center">
+                {isStakingLoading ? (
+                  <ActivityIndicator size="small" color="#000000" />
+                ) : (
+                  <Text className="font-['PPNeueBit-Bold'] text-xs text-black/60">
+                    {stakedAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} Staked
+                  </Text>
+                )}
+              </View>
+            </Pressable>
+          )}
 
           {isConnected && (
             <Pressable
@@ -89,10 +97,8 @@ export function WalletSection({ showStaking = true }: WalletSectionProps) {
         </View>
       </Card>
 
-      {/* Staking Panel */}
-      {showStaking && isConnected && !isWrongNetwork && (
-        <StakingPanel />
-      )}
-    </View>
+      {/* Stake Modal */}
+      <StakeModal visible={showStakeModal} onClose={() => setShowStakeModal(false)} />
+    </>
   );
 }

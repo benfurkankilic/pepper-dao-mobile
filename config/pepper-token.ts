@@ -48,6 +48,12 @@ export const PEPPER_STAKING_CONTRACT_ADDRESSES: Array<string> = [
 ];
 
 /**
+ * CEX Fund wallet address for Tier 1 exchange listing.
+ * Funds will be used for CEX listing or returned to treasury after 90 days.
+ */
+export const CEX_FUND_ADDRESS = '0x0ECAB88E26f7eA29D0DcB4aBcF060A5Ae09a1C2B';
+
+/**
  * Core Pepper token metrics used by the home dashboard.
  *
  * All numeric quantities are expressed in raw token units
@@ -60,6 +66,7 @@ export interface PepperTokenMetrics {
   treasuryBalance: bigint;
   treasuryChzBalance: bigint;
   treasuryChzDelta: bigint | null;
+  cexFundChzBalance: bigint;
   circulatingSupply: bigint;
   decimals: number;
   updatedAt: string;

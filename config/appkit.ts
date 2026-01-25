@@ -1,12 +1,10 @@
 /**
  * Reown AppKit Configuration
- * 
+ *
  * IMPORTANT: This file must be imported before any AppKit components are used.
  * The import order is critical - @walletconnect/react-native-compat must be first.
- * 
- * Environment-aware configuration:
- * - Development (__DEV__ = true): Chiliz Spicy Testnet (88882)
- * - Production (__DEV__ = false): Chiliz Mainnet (88888)
+ *
+ * Currently forced to Chiliz Mainnet (88888) for debugging.
  */
 
 // Required polyfills - MUST be first import
@@ -115,18 +113,16 @@ const chilizSpicyTestnet: AppKitNetwork = {
 };
 
 /**
- * Select active network based on environment
+ * Select active network
+ * Currently forced to mainnet for debugging
  */
-const activeNetwork = __DEV__ ? chilizSpicyTestnet : chilizMainnet;
+const activeNetwork = chilizMainnet;
 
 /**
  * Available networks
- * - In development: Both testnet and mainnet are available for testing
- * - In production: Only mainnet is available
+ * Currently forced to mainnet for debugging
  */
-const availableNetworks: Array<AppKitNetwork> = __DEV__ 
-  ? [chilizSpicyTestnet, chilizMainnet] 
-  : [chilizMainnet];
+const availableNetworks: Array<AppKitNetwork> = [chilizMainnet];
 
 /**
  * Initialize Ethers adapter for EVM chains

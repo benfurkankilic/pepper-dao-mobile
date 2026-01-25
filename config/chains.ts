@@ -70,22 +70,21 @@ export const CHILIZ_SPICY_CHAIN_ID = 88882;
 
 /**
  * Active chain ID based on environment
- * - Development (__DEV__ = true): Spicy Testnet (88882)
- * - Production (__DEV__ = false): Chiliz Mainnet (88888)
+ * Currently forced to mainnet for debugging
  */
-export const ACTIVE_CHAIN_ID = __DEV__ ? CHILIZ_SPICY_CHAIN_ID : CHILIZ_CHAIN_ID;
+export const ACTIVE_CHAIN_ID = CHILIZ_CHAIN_ID;
 
 /**
  * Active chain configuration based on environment
+ * Currently forced to mainnet for debugging
  */
-export const ACTIVE_CHAIN = __DEV__ ? chilizSpicy : chiliz;
+export const ACTIVE_CHAIN = chiliz;
 
 /**
  * Supported chains for Pepper DAO
- * In development, both chains are supported for testing
- * In production, only mainnet is supported
+ * Currently forced to mainnet for debugging
  */
-export const SUPPORTED_CHAINS = __DEV__ ? [chilizSpicy, chiliz] as const : [chiliz] as const;
+export const SUPPORTED_CHAINS = [chiliz] as const;
 
 /**
  * Primary chain for the app (always mainnet)

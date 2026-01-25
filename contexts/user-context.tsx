@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useReducer } from 'react';
 
 import { supabase } from '@/config/supabase';
-import type { Profile, Rank, UserState } from '@/types/user';
+import { recordActivity } from '@/services/activity-service';
+import type { Profile, UserState } from '@/types/user';
 
 /**
  * User Context Value
@@ -198,12 +199,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [state.profile?.id]);
 
   /**
-   * Update wallet address on profile
+   * Update wallet address on profile and handle rank promotion
    */
   const updateWalletAddress = useCallback(async (address: string) => {
     if (!state.profile?.id) return;
 
     try {
+      // Update wallet address
       const { error } = await supabase
         .from('profiles')
         .update({ wallet_address: address })
@@ -212,6 +214,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         throw error;
       }
+
+      // Record WALLET_CONNECTED activity (awards points and handles rank promotion)
+      await recordActivity({
+        profileId: state.profile.id,
+        eventType: 'WALLET_CONNECTED',
+        metadata: { wallet_address: address },
+      });
 
       // Refresh profile to get updated data
       await refreshProfile();

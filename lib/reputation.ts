@@ -10,6 +10,7 @@ import type { Activity, EventType, Profile, Rank, RankDisplay } from '@/types/us
  * Points awarded for each event type
  */
 export const REPUTATION_POINTS: Record<EventType, number> = {
+  WALLET_CONNECTED: 10,
   FIRST_VOTE: 20,
   VOTE: 10,
   PROPOSAL_SUBMITTED: 0, // No points until engagement (anti-spam)
@@ -239,6 +240,8 @@ export function formatPoints(points: number): string {
  */
 export function getEventTitle(activity: Activity): string {
   switch (activity.event_type) {
+    case 'WALLET_CONNECTED':
+      return 'Wallet Connected!';
     case 'FIRST_VOTE':
       return 'First Vote!';
     case 'VOTE':
@@ -273,6 +276,8 @@ export function getEventTitle(activity: Activity): string {
  */
 export function getEventIcon(eventType: EventType): string {
   switch (eventType) {
+    case 'WALLET_CONNECTED':
+      return '👛';
     case 'FIRST_VOTE':
     case 'VOTE':
       return '🗳️';

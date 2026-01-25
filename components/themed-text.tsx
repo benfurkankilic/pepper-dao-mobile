@@ -17,8 +17,10 @@ export function ThemedText({
   type = 'default',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
-  const linkColor = useThemeColor({ light: Colors.light.link, dark: darkColor }, 'text');
+  // Use lightColor for both modes when darkColor isn't specified
+  const effectiveDarkColor = darkColor ?? lightColor;
+  const color = useThemeColor({ light: lightColor, dark: effectiveDarkColor }, 'text');
+  const linkColor = useThemeColor({ light: Colors.light.link, dark: effectiveDarkColor }, 'text');
 
   return (
     <Text

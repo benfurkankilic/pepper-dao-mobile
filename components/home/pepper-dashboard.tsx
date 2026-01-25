@@ -1,3 +1,4 @@
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Image, type ImageSource } from 'expo-image';
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
@@ -7,6 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { PixelAlertModal } from '@/components/ui/pixel-alert-modal';
 import { PepperTokenMetrics } from '@/config/pepper-token';
 import { DANGER_RED, FOREST_GREEN, SUCCESS_GREEN } from '@/constants/theme';
 import { usePepperTokenMetrics } from '@/hooks/use-pepper-token-metrics';
@@ -21,6 +23,7 @@ const ICON_TOTAL_SUPPLY = require('@/assets/images/pepper/total-supply.png');
 const ICON_TREASURY = require('@/assets/images/pepper/treasury.png');
 const ICON_VAULT = require('@/assets/images/pepper/vault.png');
 const ICON_BURN = require('@/assets/images/pepper/burn.png');
+const ICON_CEX_FUND = require('@/assets/images/pepper/cex-fund.png');
 
 interface PepperDashboardProps {
   showHeader?: boolean;
@@ -31,6 +34,12 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
     usePepperTokenMetrics();
 
   const [isTreasuryModalVisible, setIsTreasuryModalVisible] =
+    useState<boolean>(false);
+  const [isTreasuryInfoVisible, setIsTreasuryInfoVisible] =
+    useState<boolean>(false);
+  const [isStakedInfoVisible, setIsStakedInfoVisible] =
+    useState<boolean>(false);
+  const [isCexFundInfoVisible, setIsCexFundInfoVisible] =
     useState<boolean>(false);
 
   const decimals = metrics?.decimals ?? 18;
@@ -95,6 +104,15 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
             onPressTreasury={() => {
               setIsTreasuryModalVisible(true);
             }}
+            onTreasuryInfoPress={() => {
+              setIsTreasuryInfoVisible(true);
+            }}
+            onStakedInfoPress={() => {
+              setIsStakedInfoVisible(true);
+            }}
+            onCexFundInfoPress={() => {
+              setIsCexFundInfoVisible(true);
+            }}
           />
         </View>
       </Card>
@@ -104,6 +122,33 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
         onClose={() => {
           setIsTreasuryModalVisible(false);
         }}
+      />
+
+      <PixelAlertModal
+        visible={isTreasuryInfoVisible}
+        onClose={() => setIsTreasuryInfoVisible(false)}
+        title="Treasury"
+        message="These funds are managed by the PEPPER community through voting."
+        copyableAddress="0x1d70027242A82362fd2c818bb2A3a2cAaA513816"
+        type="info"
+      />
+
+      <PixelAlertModal
+        visible={isStakedInfoVisible}
+        onClose={() => setIsStakedInfoVisible(false)}
+        title="Staked Pepper"
+        message="This is the total amount of staked PEPPER."
+        copyableAddress="0x5cA4C88339D89B2547a001003Cca84F62F557A72"
+        type="info"
+      />
+
+      <PixelAlertModal
+        visible={isCexFundInfoVisible}
+        onClose={() => setIsCexFundInfoVisible(false)}
+        title="CEX Fund"
+        message="The CEX Fund will be used to secure a Tier 1 Centralized Exchange listing for PEPPER. If the funds raised are insufficient after 90 days, they will be returned to the PEPPER Treasury to be managed by the community."
+        copyableAddress="0x0ECAB88E26f7eA29D0DcB4aBcF060A5Ae09a1C2B"
+        type="info"
       />
     </ThemedView>
   );
@@ -116,6 +161,9 @@ interface MetricsGridProps {
   isFetching: boolean;
   lastUpdated: string | null;
   onPressTreasury: () => void;
+  onTreasuryInfoPress: () => void;
+  onStakedInfoPress: () => void;
+  onCexFundInfoPress: () => void;
 }
 
 function MetricsGrid({
@@ -125,6 +173,9 @@ function MetricsGrid({
   isFetching,
   lastUpdated,
   onPressTreasury,
+  onTreasuryInfoPress,
+  onStakedInfoPress,
+  onCexFundInfoPress,
 }: MetricsGridProps) {
   const hasData = metrics !== null;
 
@@ -184,6 +235,7 @@ function MetricsGrid({
               : undefined
           }
           onPress={onPressTreasury}
+          onInfoPress={onTreasuryInfoPress}
           icon={ICON_TREASURY}
         />
         <MetricTile
@@ -193,7 +245,18 @@ function MetricsGrid({
               ? formatPepperAmount(metrics.stakedAmount, decimals)
               : '–'
           }
+          onInfoPress={onStakedInfoPress}
           icon={ICON_VAULT}
+        />
+        <MetricTile
+          label="CEX Fund"
+          value={
+            hasData
+              ? `${formatPepperAmount(metrics.cexFundChzBalance, 18)} CHZ`
+              : '–'
+          }
+          onInfoPress={onCexFundInfoPress}
+          icon={ICON_CEX_FUND}
         />
         <MetricTile
           label="Burnt Pepper"
@@ -231,6 +294,7 @@ interface MetricTileProps {
   subtitle?: string | null;
   subtitleColor?: string;
   onPress?: () => void;
+  onInfoPress?: () => void;
 }
 
 function MetricTile({
@@ -239,8 +303,11 @@ function MetricTile({
   subtitle,
   subtitleColor,
   onPress,
+  onInfoPress,
   icon,
 }: MetricTileProps) {
+  const isClickable = Boolean(onPress);
+
   return (
     <Pressable
       disabled={!onPress}
@@ -253,20 +320,38 @@ function MetricTile({
         contentFit="contain"
       />
       <View className="flex-1">
-        <ThemedText type="caption">
-          {label.toUpperCase()}
-        </ThemedText>
-        <View className="flex-row items-end gap-2">
-          <ThemedText type="title">
-            {value}
+        <View className="flex-row items-center justify-between">
+          <ThemedText type="caption">
+            {label.toUpperCase()}
           </ThemedText>
-          {subtitle ? (
+          {onInfoPress ? (
+            <Pressable onPress={onInfoPress} hitSlop={8}>
+              <MaterialIcons name="info-outline" size={18} color="#666666" />
+            </Pressable>
+          ) : null}
+        </View>
+        <View className="flex-row items-end justify-between">
+          <View className="flex-row items-end gap-2">
+            <ThemedText type="title">
+              {value}
+            </ThemedText>
+            {subtitle ? (
+              <ThemedText
+                type="caption"
+                lightColor={subtitleColor}
+                className="text-xs mb-2"
+              >
+                {subtitle}
+              </ThemedText>
+            ) : null}
+          </View>
+          {isClickable ? (
             <ThemedText
               type="caption"
-              lightColor={subtitleColor}
-              className="text-xs mb-2"
+              lightColor="#888888"
+              className="text-[10px] mb-1.5"
             >
-              {subtitle}
+              View activity →
             </ThemedText>
           ) : null}
         </View>

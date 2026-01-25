@@ -97,8 +97,11 @@ const publicClient = createPublicClient({
   transport: http(),
 });
 
+// Chiliz uses Routescan API for Etherscan-compatible endpoints
+// Chain ID 88888 = Chiliz mainnet
 const CHILIZSCAN_API_URL =
-  process.env.EXPO_PUBLIC_CHILIZSCAN_API_URL ?? 'https://scan.chiliz.com/api';
+  process.env.EXPO_PUBLIC_CHILIZSCAN_API_URL ??
+  'https://api.routescan.io/v2/network/mainnet/evm/88888/etherscan/api';
 
 const CHILIZSCAN_API_KEY = process.env.EXPO_PUBLIC_CHILIZSCAN_API_KEY;
 
@@ -298,6 +301,7 @@ export async function fetchTreasuryChzTxs(
   const allTxs: Array<TreasuryChzTx> = [];
 
   for (const address of PEPPER_TREASURY_ADDRESSES) {
+    // Use Etherscan-compatible RPC API format (Blockscout standard)
     const params = new URLSearchParams({
       module: 'account',
       action: 'txlist',
@@ -313,79 +317,94 @@ export async function fetchTreasuryChzTxs(
 
     const url = `${CHILIZSCAN_API_URL}?${params.toString()}`;
 
-    console.log('[ChilizAPI] fetchTreasuryChzTxs24h request', {
+    console.log('[ChilizAPI] fetchTreasuryChzTxs request', {
       address,
       url,
     });
 
-    const response = await fetch(url);
+    try {
+      const response = await fetch(url);
 
-    if (!response.ok) {
-      console.warn(
-        '[ChilizAPI] fetchTreasuryChzTxs24h non-200 response',
-        response.status,
-      );
-      continue;
-    }
+      if (!response.ok) {
+        console.warn(
+          '[ChilizAPI] fetchTreasuryChzTxs non-200 response',
+          response.status,
+        );
+        continue;
+      }
 
-    const json = (await response.json()) as ChilizScanResponse<
-      Array<ChilizScanTx> | string
-    >;
+      const json = (await response.json()) as ChilizScanResponse<
+        Array<ChilizScanTx> | string
+      >;
 
-    if (!Array.isArray(json.result)) {
-      console.warn(
-        '[ChilizAPI] fetchTreasuryChzTxs24h unexpected result shape',
-        json.message,
-      );
-      continue;
-    }
-
-    const addressLower = address.toLowerCase();
-
-    const filtered = json.result
-      .filter((tx) => {
-        const timestamp = Number(tx.timeStamp);
-
-        if (Number.isNaN(timestamp)) {
-          return false;
-        }
-
-        if (sinceSeconds > 0 && timestamp < sinceSeconds) {
-          return false;
-        }
-
-        if (tx.isError === '1') {
-          return false;
-        }
-
-        const fromLower = tx.from.toLowerCase();
-        const toLower = tx.to.toLowerCase();
-
-        return fromLower === addressLower || toLower === addressLower;
-      })
-      .map<TreasuryChzTx>((tx) => {
-        const value = BigInt(tx.value);
-        const timestamp = Number(tx.timeStamp);
-        const toLower = tx.to.toLowerCase();
-        const direction: 'in' | 'out' =
-          toLower === addressLower ? 'in' : 'out';
-
-        return {
-          hash: tx.hash,
-          from: tx.from,
-          to: tx.to,
-          value,
-          timestamp,
-          direction,
-        };
+      console.log('[ChilizAPI] fetchTreasuryChzTxs raw response', {
+        status: json.status,
+        message: json.message,
+        resultType: typeof json.result,
+        isArray: Array.isArray(json.result),
       });
 
-    console.log('[ChilizAPI] fetchTreasuryChzTxs24h response', {
-      address,
-      count: filtered.length,
-    });
+      if (!Array.isArray(json.result)) {
+        console.warn(
+          '[ChilizAPI] fetchTreasuryChzTxs unexpected result shape',
+          json.message,
+        );
+        continue;
+      }
 
-    allTxs.push(...filtered);
+      const addressLower = address.toLowerCase();
+
+      const filtered = json.result
+        .filter((tx) => {
+          const timestamp = Number(tx.timeStamp);
+
+          if (Number.isNaN(timestamp)) {
+            return false;
+          }
+
+          if (sinceSeconds > 0 && timestamp < sinceSeconds) {
+            return false;
+          }
+
+          if (tx.isError === '1') {
+            return false;
+          }
+
+          const fromLower = tx.from.toLowerCase();
+          const toLower = tx.to.toLowerCase();
+
+          return fromLower === addressLower || toLower === addressLower;
+        })
+        .map<TreasuryChzTx>((tx) => {
+          const value = BigInt(tx.value);
+          const timestamp = Number(tx.timeStamp);
+          const toLower = tx.to.toLowerCase();
+          const direction: 'in' | 'out' =
+            toLower === addressLower ? 'in' : 'out';
+
+          return {
+            hash: tx.hash,
+            from: tx.from,
+            to: tx.to,
+            value,
+            timestamp,
+            direction,
+          };
+        });
+
+      console.log('[ChilizAPI] fetchTreasuryChzTxs response', {
+        address,
+        count: filtered.length,
+      });
+
+      allTxs.push(...filtered);
+    } catch (error) {
+      console.error('[ChilizAPI] fetchTreasuryChzTxs error', {
+        address,
+        error,
+      });
+      continue;
+    }
   }
 
   allTxs.sort((a, b) => b.timestamp - a.timestamp);

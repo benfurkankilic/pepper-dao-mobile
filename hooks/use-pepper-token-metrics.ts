@@ -2,12 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import {
+  CEX_FUND_ADDRESS,
   PEPPER_BURN_ADDRESSES,
   PEPPER_STAKING_CONTRACT_ADDRESSES,
   PepperTokenMetrics,
 } from '@/config/pepper-token';
 import { telemetry } from '@/lib/telemetry';
 import {
+  fetchNativeBalances,
   fetchPepperBalances,
   fetchPepperTokenMetadata,
   fetchPepperTreasuryBalances,
@@ -48,6 +50,7 @@ async function loadPepperTokenMetrics(): Promise<PepperTokenMetrics> {
     stakingBalances,
     treasuryChzBalances,
     treasuryChzDelta,
+    cexFundChzBalances,
   ] = await Promise.all([
     fetchPepperTokenMetadata(),
     fetchPepperTreasuryBalances(),
@@ -55,6 +58,7 @@ async function loadPepperTokenMetrics(): Promise<PepperTokenMetrics> {
     fetchPepperBalances(PEPPER_STAKING_CONTRACT_ADDRESSES),
     fetchTreasuryChzBalances(),
     fetchTreasuryChz24hDelta(),
+    fetchNativeBalances([CEX_FUND_ADDRESS]),
   ]);
 
   const treasuryBalance = sumBalances<PepperAddressBalance>(treasuryBalances);
@@ -62,6 +66,9 @@ async function loadPepperTokenMetrics(): Promise<PepperTokenMetrics> {
   const stakedAmount = sumBalances<PepperAddressBalance>(stakingBalances);
   const treasuryChzBalance = sumBalances<NativeAddressBalance>(
     treasuryChzBalances,
+  );
+  const cexFundChzBalance = sumBalances<NativeAddressBalance>(
+    cexFundChzBalances,
   );
 
   const circulatingSupply = calculateCirculatingSupply(
@@ -78,6 +85,7 @@ async function loadPepperTokenMetrics(): Promise<PepperTokenMetrics> {
     treasuryBalance,
     treasuryChzBalance,
     treasuryChzDelta,
+    cexFundChzBalance,
     circulatingSupply,
     decimals: metadata.decimals,
     updatedAt: new Date().toISOString(),

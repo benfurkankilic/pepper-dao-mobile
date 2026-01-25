@@ -154,7 +154,7 @@ export default function RootLayout() {
                       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
                       <Stack.Screen
                         name="governance/[proposalId]"
-                        options={{ title: 'Proposal' }}
+                        options={{ headerShown: false }}
                       />
                       <Stack.Screen
                         name="governance/create"

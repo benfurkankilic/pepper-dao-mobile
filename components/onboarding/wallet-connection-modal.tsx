@@ -53,37 +53,44 @@ export function WalletConnectionModal({ visible, onDismiss }: WalletConnectionMo
       animationType="fade"
       onRequestClose={onDismiss}
     >
-      <View className="flex-1 items-center justify-center bg-black/80 px-6">
+      <View className="flex-1 items-center justify-center bg-black/85 px-5">
         {/* Modal Card */}
-        <View className="w-full max-w-md border-4 border-black bg-white p-8 shadow-[8px_8px_0px_#000000]">
-          {/* Title */}
-          <Text className="mb-4 text-center font-['PPNeueBit-Bold'] text-2xl uppercase tracking-wider text-[#FF006E]">
-            Connect Wallet
-          </Text>
-          
-          {/* Description */}
-          <Text className="mb-8 text-center font-['PPMondwest-Regular'] text-sm leading-6 text-gray-800">
-            Connect your wallet to participate in governance, staking, and earn rewards.
-            {'\n\n'}
-            Or explore without connecting in read-only mode.
-          </Text>
+        <View className="w-full max-w-sm border-2 border-[#FF006E] bg-[#1a1a1a] shadow-[4px_4px_0px_#000000]">
+          {/* Header */}
+          <View className="border-b border-[#FF006E]/30 px-4 py-3">
+            <Text className="text-center font-['PPNeueBit-Bold'] text-base uppercase tracking-wider text-[#FF006E]">
+              Connect Wallet
+            </Text>
+          </View>
 
-          {/* Connect Button */}
-          <Button
-            onPress={handleConnectPress}
-            variant="primary"
-            className="mb-4"
-          >
-            Connect Wallet
-          </Button>
+          {/* Content */}
+          <View className="px-4 py-4">
+            <Text className="text-center font-['PPMondwest-Regular'] text-sm leading-6 text-white/80">
+              Connect your wallet to participate in governance, staking, and earn rewards.
+            </Text>
+            <Text className="mt-3 text-center font-['PPMondwest-Regular'] text-xs text-white/50">
+              Or explore without connecting in read-only mode.
+            </Text>
+          </View>
 
-          {/* Explore Button */}
-          <Button
-            onPress={handleExplorePress}
-            variant="secondary"
-          >
-            Explore Without Connecting
-          </Button>
+          {/* Footer */}
+          <View className="gap-3 p-4">
+            {/* Connect Button */}
+            <Button
+              onPress={handleConnectPress}
+              variant="primary"
+            >
+              Connect Wallet
+            </Button>
+
+            {/* Explore Button */}
+            <Button
+              onPress={handleExplorePress}
+              variant="secondary"
+            >
+              Explore Without Connecting
+            </Button>
+          </View>
         </View>
       </View>
     </Modal>

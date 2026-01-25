@@ -1,5 +1,9 @@
-import { Modal, Pressable, Text, View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Haptics from 'expo-haptics';
+import { useState } from 'react';
+import { Modal, Pressable, Text, View } from 'react-native';
+
+import { copyToClipboard } from '@/lib/clipboard';
 
 interface PixelAlertModalProps {
   visible: boolean;
@@ -7,39 +11,50 @@ interface PixelAlertModalProps {
   title: string;
   message: string;
   type?: 'error' | 'warning' | 'info';
+  copyableAddress?: string;
 }
 
 const TYPE_STYLES = {
   error: {
     borderColor: '#FF006E',
     titleColor: '#FF006E',
-    bgColor: '#1a0a10',
+    bgColor: '#1a1a1a',
     buttonBg: '#FF006E',
     buttonText: '#FFFFFF',
   },
   warning: {
-    borderColor: '#FFEA00',
-    titleColor: '#FFEA00',
-    bgColor: '#1a1a0a',
-    buttonBg: '#FFEA00',
+    borderColor: '#FFC043',
+    titleColor: '#FFC043',
+    bgColor: '#1a1a1a',
+    buttonBg: '#FFC043',
     buttonText: '#000000',
   },
   info: {
     borderColor: '#0080FF',
     titleColor: '#0080FF',
-    bgColor: '#0a1a1a',
+    bgColor: '#1a1a1a',
     buttonBg: '#0080FF',
     buttonText: '#FFFFFF',
   },
 };
 
 export function PixelAlertModal(props: PixelAlertModalProps) {
-  const { visible, onClose, title, message, type = 'error' } = props;
+  const { visible, onClose, title, message, type = 'error', copyableAddress } = props;
   const styles = TYPE_STYLES[type];
+  const [copied, setCopied] = useState(false);
 
   function handleClose() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setCopied(false);
     onClose();
+  }
+
+  async function handleCopyAddress() {
+    if (!copyableAddress) return;
+    await copyToClipboard(copyableAddress);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -49,52 +64,82 @@ export function PixelAlertModal(props: PixelAlertModalProps) {
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <View className="flex-1 items-center justify-center bg-black/80 px-6">
+      <View className="flex-1 items-center justify-center bg-black/85 px-5">
         <View
-          className="w-full max-w-sm border-4 p-4 shadow-[6px_6px_0px_#000000]"
+          className="w-full max-w-sm border-2 shadow-[4px_4px_0px_#000000]"
           style={{
             borderColor: styles.borderColor,
             backgroundColor: styles.bgColor,
           }}
         >
           {/* Header */}
-          <View className="mb-3 flex-row items-center justify-between">
+          <View
+            className="flex-row items-center justify-between px-4 py-3"
+            style={{ borderBottomWidth: 1, borderBottomColor: `${styles.borderColor}50` }}
+          >
             <Text
-              className="font-['PPNeueBit-Bold'] text-lg uppercase tracking-wider"
+              className="font-['PPNeueBit-Bold'] text-base uppercase tracking-wider"
               style={{ color: styles.titleColor }}
             >
               {title}
             </Text>
             <Pressable
               onPress={handleClose}
-              className="h-8 w-8 items-center justify-center border-2"
-              style={{ borderColor: styles.borderColor }}
+              className="h-7 w-7 items-center justify-center bg-white/10 active:bg-white/20"
             >
-              <Text
-                className="font-['PPNeueBit-Bold'] text-sm"
-                style={{ color: styles.titleColor }}
-              >
-                X
-              </Text>
+              <Text className="font-['PPNeueBit-Bold'] text-xs text-white">X</Text>
             </Pressable>
           </View>
 
-          {/* Message */}
-          <Text className="mb-4 text-sm leading-5 text-white/90">{message}</Text>
+          {/* Content */}
+          <View className="px-4 py-4">
+            {/* Message */}
+            <Text className="text-sm leading-5 text-white/90">{message}</Text>
 
-          {/* OK Button */}
-          <Pressable
-            onPress={handleClose}
-            className="border-4 border-white py-3 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
-            style={{ backgroundColor: styles.buttonBg }}
-          >
-            <Text
-              className="text-center font-['PPNeueBit-Bold'] text-sm uppercase tracking-wider"
-              style={{ color: styles.buttonText }}
+            {/* Copyable Address */}
+            {copyableAddress ? (
+              <Pressable
+                onPress={handleCopyAddress}
+                className="mt-4 flex-row items-center justify-between bg-white/10 p-3"
+              >
+                <Text
+                  className="flex-1 font-['PPNeueBit-Bold'] text-xs"
+                  style={{ color: styles.titleColor }}
+                  numberOfLines={1}
+                >
+                  {copyableAddress}
+                </Text>
+                <View className="ml-2 flex-row items-center">
+                  <MaterialIcons
+                    name={copied ? 'check' : 'content-copy'}
+                    size={16}
+                    color={copied ? '#4ADE80' : styles.titleColor}
+                  />
+                  {copied ? (
+                    <Text className="ml-1 font-['PPNeueBit-Bold'] text-xs text-green-400">
+                      Copied!
+                    </Text>
+                  ) : null}
+                </View>
+              </Pressable>
+            ) : null}
+          </View>
+
+          {/* Footer */}
+          <View className="p-4">
+            <Pressable
+              onPress={handleClose}
+              className="py-3 active:opacity-80"
+              style={{ backgroundColor: styles.buttonBg }}
             >
-              OK
-            </Text>
-          </Pressable>
+              <Text
+                className="text-center font-['PPNeueBit-Bold'] text-sm uppercase tracking-wider"
+                style={{ color: styles.buttonText }}
+              >
+                OK
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </Modal>

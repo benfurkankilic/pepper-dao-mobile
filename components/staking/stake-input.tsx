@@ -75,7 +75,7 @@ export function StakeInput({
       </View>
 
       {/* Input Container */}
-      <View className="border-3 border-white bg-[#1a1a1a]">
+      <View className="bg-white/10">
         <View className="flex-row items-center">
           <TextInput
             value={value}
@@ -89,7 +89,7 @@ export function StakeInput({
           <Pressable
             onPress={handleMaxPress}
             disabled={disabled}
-            className="mr-2 border-2 border-[#00FF80] bg-transparent px-3 py-1 active:bg-[#00FF80]/20"
+            className="mr-2 bg-[#00FF80]/20 px-3 py-1 active:bg-[#00FF80]/30"
           >
             <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#00FF80]">
               MAX
@@ -99,18 +99,18 @@ export function StakeInput({
       </View>
 
       {/* Percentage Chips */}
-      <View className="flex-row space-x-2">
+      <View className="mt-2 flex-row gap-2">
         {PERCENTAGE_CHIPS.map((percentage) => (
           <Pressable
             key={percentage}
             onPress={() => handlePercentagePress(percentage)}
             disabled={disabled}
             className={`
-              flex-1 border-2 border-white py-2
-              ${disabled ? 'opacity-50' : 'active:bg-white/10'}
+              flex-1 bg-white/10 py-2
+              ${disabled ? 'opacity-50' : 'active:bg-white/20'}
             `}
           >
-            <Text className="text-center font-['PPNeueBit-Bold'] text-xs uppercase text-white">
+            <Text className="text-center font-['PPNeueBit-Bold'] text-xs uppercase text-white/70">
               {percentage}%
             </Text>
           </Pressable>

@@ -35,7 +35,7 @@ export function Button({
   const textColorStyles = {
     primary: 'text-white',
     secondary: 'text-black',
-    success: 'text-white',
+    success: 'text-[#1A2A22]',
   };
 
   return (

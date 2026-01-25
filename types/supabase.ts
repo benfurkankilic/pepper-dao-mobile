@@ -123,6 +123,9 @@ export interface Database {
           current_streak_weeks: number;
           longest_streak_weeks: number;
           last_activity_at: string | null;
+          has_voted: boolean;
+          has_engaged_proposal: boolean;
+          has_passed_proposal: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -134,6 +137,9 @@ export interface Database {
           current_streak_weeks?: number;
           longest_streak_weeks?: number;
           last_activity_at?: string | null;
+          has_voted?: boolean;
+          has_engaged_proposal?: boolean;
+          has_passed_proposal?: boolean;
           created_at?: string;
           updated_at?: string;
         };

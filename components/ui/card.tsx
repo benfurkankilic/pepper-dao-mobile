@@ -18,7 +18,7 @@ export function Card({
   const variantStyles = {
     default: { backgroundColor: '#FFFFFF', borderColor: '#1A2A22' },
     alt: { backgroundColor: '#F3F6F4', borderColor: '#1A2A22' },
-    dark: { backgroundColor: '#1a1a1a', borderColor: '#000000' },
+    dark: { backgroundColor: '#1a1a1a', borderColor: '#333333' },
   };
 
   const elevationStyles = {

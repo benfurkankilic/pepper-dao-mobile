@@ -1,9 +1,7 @@
 /**
  * Staking contract configuration for PEPPER token staking.
  *
- * This module provides environment-aware contract addresses and ABIs
- * for the staking functionality on Chiliz Chain (mainnet) and
- * Spicy Testnet (development).
+ * Currently forced to Chiliz mainnet (88888) for debugging.
  */
 
 import { PEPPER_TOKEN_ADDRESS } from './pepper-token';
@@ -25,17 +23,19 @@ export const PEPPER_TOKEN_ADDRESSES = {
 } as const;
 
 /**
- * Get the staking contract address based on environment
+ * Get the staking contract address
+ * Currently forced to mainnet for debugging
  */
 export function getStakingContractAddress(): string {
-  return __DEV__ ? STAKING_CONTRACT_ADDRESSES.testnet : STAKING_CONTRACT_ADDRESSES.mainnet;
+  return STAKING_CONTRACT_ADDRESSES.mainnet;
 }
 
 /**
- * Get the PEPPER token address based on environment
+ * Get the PEPPER token address
+ * Currently forced to mainnet for debugging
  */
 export function getPepperTokenAddress(): string {
-  return __DEV__ ? PEPPER_TOKEN_ADDRESSES.testnet : PEPPER_TOKEN_ADDRESSES.mainnet;
+  return PEPPER_TOKEN_ADDRESSES.mainnet;
 }
 
 /**

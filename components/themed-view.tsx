@@ -9,17 +9,19 @@ export type ThemedViewProps = ViewProps & {
   surface?: 'default' | 'alt' | 'inverse';
 };
 
-export function ThemedView({ 
-  style, 
-  lightColor, 
-  darkColor, 
+export function ThemedView({
+  style,
+  lightColor,
+  darkColor,
   surface,
-  ...otherProps 
+  ...otherProps
 }: ThemedViewProps) {
+  // Use lightColor for both modes when darkColor isn't specified
+  const effectiveDarkColor = darkColor ?? lightColor;
   let backgroundColor: string;
-  
+
   if (lightColor || darkColor) {
-    backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+    backgroundColor = useThemeColor({ light: lightColor, dark: effectiveDarkColor }, 'background');
   } else if (surface) {
     const theme = 'light'; // Currently only light theme
     switch (surface) {

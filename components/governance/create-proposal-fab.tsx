@@ -24,11 +24,14 @@ export function CreateProposalFAB(props: CreateProposalFABProps) {
       <Pressable
         onPress={handlePress}
         disabled={disabled}
-        className={`h-14 w-14 items-center justify-center border-4 border-white shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none ${
-          disabled ? 'bg-gray-500 opacity-50' : 'bg-[#E54545]'
+        className={`flex-row items-center gap-2 px-5 py-3 active:opacity-80 ${
+          disabled ? 'bg-gray-500 opacity-50' : 'bg-[#FFC043]'
         }`}
       >
-        <Text className="font-['PPNeueBit-Bold'] text-2xl text-white">+</Text>
+        <Text className="font-['PPNeueBit-Bold'] text-lg text-black">+</Text>
+        <Text className="font-['PPNeueBit-Bold'] text-sm uppercase tracking-wider text-black">
+          Submit
+        </Text>
       </Pressable>
     </View>
   );

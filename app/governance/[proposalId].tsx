@@ -1,6 +1,8 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 
 import {
     ProposalStatusPill,
@@ -65,6 +67,8 @@ interface DetailsTabProps {
 function DetailsTab(props: DetailsTabProps) {
   const { proposal } = props;
 
+  const typeLabel = proposal.type === 'PEP' ? 'Community Proposal' : proposal.type === 'ADMIN' ? 'Admin Proposal' : 'Multisig Proposal';
+
   return (
     <View className="p-4">
       {/* Title */}
@@ -84,6 +88,16 @@ function DetailsTab(props: DetailsTabProps) {
         </Text>
         <Text style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.9)', lineHeight: 20 }}>
           {proposal.description}
+        </Text>
+      </View>
+
+      {/* Type */}
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', marginBottom: 4 }}>
+          Type
+        </Text>
+        <Text style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.9)', lineHeight: 20 }}>
+          {typeLabel}
         </Text>
       </View>
 
@@ -558,10 +572,17 @@ export default function GovernanceProposalDetailScreen() {
   const params = useLocalSearchParams<{ proposalId?: string }>();
   const proposalId = params.proposalId;
   const [activeTab, setActiveTab] = useState<TabType>('details');
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const { data: proposal, isLoading } = useGovernanceProposal({
     proposalId,
   });
+
+  function handleBack() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  }
 
   function renderTabContent() {
     if (!proposal) {
@@ -585,8 +606,31 @@ export default function GovernanceProposalDetailScreen() {
   return (
     <ThemedView
       className="flex-1"
-      style={{ backgroundColor: FOREST_GREEN }}
+      style={{ backgroundColor: FOREST_GREEN, paddingTop: insets.top }}
     >
+      {/* Custom Header */}
+      <View className="flex-row items-center border-b-4 border-white/20 px-4 py-3">
+        <Pressable
+          onPress={handleBack}
+          className="h-10 w-10 items-center justify-center border-2 border-white"
+        >
+          <Text className="font-['PPNeueBit-Bold'] text-lg text-white">←</Text>
+        </Pressable>
+
+        {proposal ? (
+          <View className="ml-4 flex-1 flex-row items-center justify-between">
+            <Text className="font-['PPNeueBit-Bold'] text-lg text-[#FFEA00]">
+              {proposal.key}
+            </Text>
+            <ProposalStatusPill status={proposal.status} />
+          </View>
+        ) : (
+          <Text className="ml-4 font-['PPNeueBit-Bold'] text-lg uppercase tracking-wider text-white">
+            Proposal
+          </Text>
+        )}
+      </View>
+
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
         <View
           style={{
@@ -600,50 +644,21 @@ export default function GovernanceProposalDetailScreen() {
             elevation: 6,
           }}
         >
-          {/* Header */}
-          <View style={{ padding: 16, borderBottomWidth: 2, borderBottomColor: '#FFFFFF' }}>
-            {isLoading && !proposal ? (
-              <View style={{ paddingVertical: 12, alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#FFFFFF" />
-                <Text style={{ marginTop: 12, fontSize: 12, color: '#FFFFFF' }}>
-                  Loading proposal...
-                </Text>
-              </View>
-            ) : !proposal ? (
-              <View style={{ paddingVertical: 12 }}>
-                <Text style={{ fontSize: 14, color: '#FFFFFF', textAlign: 'center' }}>
-                  Proposal not found
-                </Text>
-              </View>
-            ) : (
-              <View>
-                {/* Key */}
-                <View style={{ marginBottom: 8 }}>
-                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#FFEA00', textTransform: 'uppercase', letterSpacing: 1.2 }}>
-                    {proposal.key}
-                  </Text>
-                </View>
-
-                {/* Status and Type */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <ProposalStatusPill status={proposal.status} />
-                  {proposal.type === 'PEP' ? (
-                    <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Community
-                    </Text>
-                  ) : proposal.type === 'MULTISIG' ? (
-                    <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Multisig
-                    </Text>
-                  ) : proposal.type === 'ADMIN' ? (
-                    <Text style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Admin
-                    </Text>
-                  ) : null}
-                </View>
-              </View>
-            )}
-          </View>
+          {/* Loading/Error States */}
+          {isLoading && !proposal ? (
+            <View style={{ padding: 16, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={{ marginTop: 12, fontSize: 12, color: '#FFFFFF' }}>
+                Loading proposal...
+              </Text>
+            </View>
+          ) : !proposal ? (
+            <View style={{ padding: 16 }}>
+              <Text style={{ fontSize: 14, color: '#FFFFFF', textAlign: 'center' }}>
+                Proposal not found
+              </Text>
+            </View>
+          ) : null}
 
           {/* Tabs */}
           {proposal ? (

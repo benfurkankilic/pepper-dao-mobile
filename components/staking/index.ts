@@ -5,6 +5,7 @@
  */
 
 export { StakeInput } from './stake-input';
+export { StakeModal } from './stake-modal';
 export { StakingPanel } from './staking-panel';
 
 
