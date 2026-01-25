@@ -78,30 +78,52 @@ export async function fetchStakingData(userAddress: string): Promise<StakingData
   const stakingAbi = [
     {
       type: 'function',
-      name: 'balanceOf',
+      name: 'getStake',
       stateMutability: 'view',
-      inputs: [{ name: 'account', type: 'address' }],
+      inputs: [
+        { name: 'staker', type: 'address' },
+        { name: 'token', type: 'address' },
+      ],
       outputs: [{ name: '', type: 'uint256' }],
     },
     {
       type: 'function',
-      name: 'earned',
+      name: 'getStakeData',
       stateMutability: 'view',
-      inputs: [{ name: 'account', type: 'address' }],
-      outputs: [{ name: '', type: 'uint256' }],
+      inputs: [
+        { name: 'staker', type: 'address' },
+        { name: 'token', type: 'address' },
+        { name: 'perEventType', type: 'bool' },
+      ],
+      outputs: [
+        {
+          name: '',
+          type: 'tuple',
+          components: [
+            { name: 'totalStake', type: 'uint256' },
+            { name: 'totalUnstakable', type: 'uint256' },
+            { name: 'totalLocked', type: 'uint256' },
+            { name: 'totalLockedFlexible', type: 'uint256' },
+            { name: 'totalClaimable', type: 'uint256' },
+            { name: 'totalPendingUnstake', type: 'uint256' },
+            { name: 'totalExemptFromCooldownPeriod', type: 'uint256' },
+            { name: 'totalLockedPerEventType', type: 'uint256[]' },
+          ],
+        },
+      ],
     },
     {
       type: 'function',
-      name: 'totalSupply',
+      name: 'getTotalStake',
       stateMutability: 'view',
-      inputs: [],
+      inputs: [{ name: 'token', type: 'address' }],
       outputs: [{ name: '', type: 'uint256' }],
     },
   ] as const;
 
   try {
     // Batch all read calls
-    const [walletBalance, allowance, decimals, stakedBalance, earnedRewards, totalStaked] =
+    const [walletBalance, allowance, decimals, stakeData, totalStaked] =
       await Promise.all([
         // Token contract calls
         publicClient.readContract({
@@ -125,21 +147,20 @@ export async function fetchStakingData(userAddress: string): Promise<StakingData
         publicClient.readContract({
           address: stakingAddress,
           abi: stakingAbi,
-          functionName: 'balanceOf',
-          args: [user],
+          functionName: 'getStakeData',
+          args: [user, tokenAddress, false],
         }),
         publicClient.readContract({
           address: stakingAddress,
           abi: stakingAbi,
-          functionName: 'earned',
-          args: [user],
-        }),
-        publicClient.readContract({
-          address: stakingAddress,
-          abi: stakingAbi,
-          functionName: 'totalSupply',
+          functionName: 'getTotalStake',
+          args: [tokenAddress],
         }),
       ]);
+
+    // Extract staked balance and claimable rewards from stakeData struct
+    const stakedBalance = stakeData.totalStake;
+    const earnedRewards = stakeData.totalClaimable;
 
     return {
       walletBalance,
