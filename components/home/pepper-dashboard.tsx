@@ -1,11 +1,12 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Image, type ImageSource } from 'expo-image';
+import { useRouter } from 'expo-router';
+import { openBrowserAsync, WebBrowserPresentationStyle } from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { TreasuryTransactionsModal } from '@/components/home/treasury-transactions-modal';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PixelAlertModal } from '@/components/ui/pixel-alert-modal';
@@ -25,11 +26,14 @@ const ICON_VAULT = require('@/assets/images/pepper/vault.png');
 const ICON_BURN = require('@/assets/images/pepper/burn.png');
 const ICON_CEX_FUND = require('@/assets/images/pepper/cex-fund.png');
 
+const FANX_SWAP_URL = 'https://app.fanx.xyz/trade/swap';
+
 interface PepperDashboardProps {
   showHeader?: boolean;
 }
 
 export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
+  const router = useRouter();
   const { metrics, isError, isFetching, lastUpdated } =
     usePepperTokenMetrics();
 
@@ -48,8 +52,18 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
     telemetry.trackPepperDashboardViewed();
   }, []);
 
+  async function handleGetPepper() {
+    await openBrowserAsync(FANX_SWAP_URL, {
+      presentationStyle: WebBrowserPresentationStyle.AUTOMATIC,
+    });
+  }
+
+  function handleStakeAndVote() {
+    router.push('/power');
+  }
+
   return (
-    <ThemedView className="mt-16 w-full">
+    <View className="flex-1 w-full pt-16 pb-8">
       <Card
         elevation="lg"
         className="w-full border-4 border-white p-6"
@@ -74,18 +88,14 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
             <View className="mt-4 flex-row gap-3">
               <Button
                 variant="primary"
-                onPress={() => {
-                  // TODO: Wire actual FanX link via WebBrowser
-                }}
+                onPress={handleGetPepper}
                 className="flex-1"
               >
                 GET PEPPER
               </Button>
               <Button
                 variant="secondary"
-                onPress={() => {
-                  // TODO: Wire staking / governance deep link
-                }}
+                onPress={handleStakeAndVote}
                 className="flex-1"
               >
                 STAKE & VOTE
@@ -150,7 +160,7 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
         copyableAddress="0x0ECAB88E26f7eA29D0DcB4aBcF060A5Ae09a1C2B"
         type="info"
       />
-    </ThemedView>
+    </View>
   );
 }
 

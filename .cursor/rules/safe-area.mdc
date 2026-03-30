@@ -1,9 +1,0 @@
----
-description: Safe area management for handling device notches and screen insets
-globs: **/*.tsx
----
-
-- Use SafeAreaProvider from react-native-safe-area-context to manage safe areas globally in your app
-- Wrap top-level components with SafeAreaView to handle notches, status bars, and other screen insets on both iOS and Android
-- Use SafeAreaScrollView for scrollable content to ensure it respects safe area boundaries
-- Avoid hardcoding padding or margins for safe areas; rely on SafeAreaView and context hooks

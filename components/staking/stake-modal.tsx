@@ -6,25 +6,26 @@
 
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { getExplorerTxUrl } from '@/config/chains';
 import { useStaking } from '@/hooks/use-staking';
 
 import { StakeInput } from './stake-input';
 
+type OperationType = 'stake' | 'unstake' | 'claim';
+
 interface StakeModalProps {
   visible: boolean;
   onClose: () => void;
+  onSuccess?: (txHash: string, operation: OperationType) => void;
 }
 
 type TabType = 'stake' | 'unstake';
 
-export function StakeModal({ visible, onClose }: StakeModalProps) {
+export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('stake');
   const [stakeAmount, setStakeAmount] = useState('');
   const [unstakeAmount, setUnstakeAmount] = useState('');
-  const [lastTxHash, setLastTxHash] = useState<string | null>(null);
 
   const {
     isLoading,
@@ -49,7 +50,6 @@ export function StakeModal({ visible, onClose }: StakeModalProps) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setStakeAmount('');
     setUnstakeAmount('');
-    setLastTxHash(null);
     onClose();
   }
 
@@ -61,45 +61,44 @@ export function StakeModal({ visible, onClose }: StakeModalProps) {
   async function handleApprove() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const result = await approve(stakeAmount);
-    if (result.txHash) {
-      setLastTxHash(result.txHash);
+
+    // After successful approval, automatically proceed to stake
+    if (result.success) {
+      const stakeResult = await stake(stakeAmount);
+      if (stakeResult.success && stakeResult.txHash) {
+        setStakeAmount('');
+        onClose();
+        onSuccess?.(stakeResult.txHash, 'stake');
+      }
     }
   }
 
   async function handleStake() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const result = await stake(stakeAmount);
-    if (result.success) {
+    if (result.success && result.txHash) {
       setStakeAmount('');
-      if (result.txHash) {
-        setLastTxHash(result.txHash);
-      }
+      onClose();
+      onSuccess?.(result.txHash, 'stake');
     }
   }
 
   async function handleUnstake() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const result = await unstake(unstakeAmount);
-    if (result.success) {
+    if (result.success && result.txHash) {
       setUnstakeAmount('');
-      if (result.txHash) {
-        setLastTxHash(result.txHash);
-      }
+      onClose();
+      onSuccess?.(result.txHash, 'unstake');
     }
   }
 
   async function handleClaim() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const result = await claim();
-    if (result.txHash) {
-      setLastTxHash(result.txHash);
-    }
-  }
-
-  async function handleViewTransaction() {
-    if (lastTxHash) {
-      const url = getExplorerTxUrl(lastTxHash);
-      await Linking.openURL(url);
+    if (result.success && result.txHash) {
+      onClose();
+      onSuccess?.(result.txHash, 'claim');
     }
   }
 
@@ -193,7 +192,7 @@ export function StakeModal({ visible, onClose }: StakeModalProps) {
             <View className="mb-4 flex-row bg-white/5">
               <Pressable
                 onPress={() => handleTabChange('stake')}
-                className={`flex-1 py-2.5 ${activeTab === 'stake' ? 'bg-[#FFC043]' : ''}`}
+                className={`flex-1 py-2.5 ${activeTab === 'stake' ? 'bg-[#00FF80]' : ''}`}
               >
                 <Text
                   className={`text-center font-['PPNeueBit-Bold'] text-sm uppercase ${
@@ -233,13 +232,13 @@ export function StakeModal({ visible, onClose }: StakeModalProps) {
                   <Pressable
                     onPress={handleApprove}
                     disabled={isPending}
-                    className={`py-3 ${isPending ? 'bg-white/20' : 'bg-[#0080FF] active:opacity-80'}`}
+                    className={`py-3 ${isPending ? 'bg-white/20' : 'bg-[#FFC043] active:opacity-80'}`}
                   >
                     {isPending ? (
-                      <ActivityIndicator size="small" color="#FFFFFF" />
+                      <ActivityIndicator size="small" color="#000000" />
                     ) : (
-                      <Text className="text-center font-['PPNeueBit-Bold'] text-sm uppercase tracking-wider text-white">
-                        Approve PEPPER
+                      <Text className="text-center font-['PPNeueBit-Bold'] text-sm uppercase tracking-wider text-black">
+                        Stake PEPPER
                       </Text>
                     )}
                   </Pressable>
@@ -303,17 +302,6 @@ export function StakeModal({ visible, onClose }: StakeModalProps) {
               <View className="mt-3 bg-[#FF006E]/20 p-3">
                 <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#FF006E]">Error</Text>
                 <Text className="mt-1 font-['PPMondwest-Regular'] text-xs text-white/80">{txError}</Text>
-              </View>
-            )}
-
-            {txStatus === 'success' && lastTxHash && (
-              <View className="mt-3 bg-[#00FF80]/20 p-3">
-                <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#00FF80]">Success!</Text>
-                <Pressable onPress={handleViewTransaction} className="mt-1">
-                  <Text className="font-['PPMondwest-Regular'] text-xs text-[#00FF80] underline">
-                    View on Explorer
-                  </Text>
-                </Pressable>
               </View>
             )}
           </ScrollView>

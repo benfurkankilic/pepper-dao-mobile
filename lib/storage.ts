@@ -18,6 +18,8 @@ export const STORAGE_KEYS = {
   USER_PREFERENCES: 'user:preferences',
   ONBOARDING_COMPLETED: 'onboarding:completed',
   ONBOARDING_DISMISSED: 'onboarding:dismissed',
+  ACTIVE_TAB: '@pepper:active_tab',
+  STAKING_MODAL_OPEN: '@pepper:staking_modal_open',
 } as const;
 
 /**

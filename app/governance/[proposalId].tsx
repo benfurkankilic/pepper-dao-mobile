@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -7,14 +7,14 @@ import * as Haptics from 'expo-haptics';
 import {
     ProposalStatusPill,
     ThresholdIndicators,
-    VoteButtons,
+    VoteModal,
     VotingBreakdown,
 } from '@/components/governance';
 import { ThemedView } from '@/components/themed-view';
 import { FOREST_GREEN } from '@/constants/theme';
 import { useGovernanceProposal } from '@/hooks/use-governance';
 import { formatBasisPointsAsPercentage } from '@/lib/voting-calculations';
-import type { GovernanceProposal } from '@/types/governance';
+import type { GovernanceProposal, VoteOption } from '@/types/governance';
 
 const CHILIZ_EXPLORER_URL = 'https://chiliscan.com';
 
@@ -368,20 +368,13 @@ function VotingTab(props: VotingTabProps) {
           )}
         </View>
 
-        {/* Vote Buttons - only show if Stage 1 passed and not rejected */}
-        {stage1Passed && hasVotingData && !isRejected ? (
-          <>
-            <ThresholdIndicators
-              tally={proposal.tally!}
-              votingSettings={proposal.votingSettings!}
-              totalVotingPower={proposal.totalVotingPower!}
-            />
-            <View style={{ height: 2, backgroundColor: '#FFFFFF' }} />
-            <VoteButtons
-              disabled={proposal.status !== 'ACTIVE'}
-              userVote={proposal.userVote?.voteOption}
-            />
-          </>
+        {/* Threshold Indicators - show if voting data available */}
+        {hasVotingData && stage1Passed ? (
+          <ThresholdIndicators
+            tally={proposal.tally!}
+            votingSettings={proposal.votingSettings!}
+            totalVotingPower={proposal.totalVotingPower!}
+          />
         ) : null}
       </View>
     );
@@ -418,20 +411,6 @@ function VotingTab(props: VotingTabProps) {
         tally={proposal.tally}
         votingSettings={proposal.votingSettings}
         totalVotingPower={proposal.totalVotingPower}
-      />
-
-      {/* Divider */}
-      <View
-        style={{
-          height: 2,
-          backgroundColor: '#FFFFFF',
-        }}
-      />
-
-      {/* Vote Buttons */}
-      <VoteButtons
-        disabled={proposal.status !== 'ACTIVE'}
-        userVote={proposal.userVote?.voteOption}
       />
     </View>
   );
@@ -572,6 +551,7 @@ export default function GovernanceProposalDetailScreen() {
   const params = useLocalSearchParams<{ proposalId?: string }>();
   const proposalId = params.proposalId;
   const [activeTab, setActiveTab] = useState<TabType>('details');
+  const [isVoteModalVisible, setIsVoteModalVisible] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -583,6 +563,23 @@ export default function GovernanceProposalDetailScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
   }
+
+  // Handle vote button press - opens the modal
+  const handleVote = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsVoteModalVisible(true);
+  }, []);
+
+  // Handle successful vote submission
+  const handleVoteSuccess = useCallback((txHash: string, voteOption: VoteOption) => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    console.log('[GovernanceProposal] Vote successful:', { txHash, voteOption });
+  }, []);
+
+  // Handle modal close
+  const handleCloseVoteModal = useCallback(() => {
+    setIsVoteModalVisible(false);
+  }, []);
 
   function renderTabContent() {
     if (!proposal) {
@@ -631,7 +628,7 @@ export default function GovernanceProposalDetailScreen() {
         )}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: proposal?.type === 'PEP' ? 100 : 40 }}>
         <View
           style={{
             backgroundColor: '#111827',
@@ -697,6 +694,63 @@ export default function GovernanceProposalDetailScreen() {
           ) : null}
         </View>
       </ScrollView>
+
+      {/* Fixed Vote Button at Bottom - Only for PEP proposals */}
+      {proposal && proposal.type === 'PEP' ? (
+        <View
+          className="border-t-2 border-white/20 px-4 py-3"
+          style={{ paddingBottom: insets.bottom + 12 }}
+        >
+          {(() => {
+            // TODO: Re-enable this check after testing
+            // const isVotingEnded = proposal.status === 'REJECTED' || proposal.status === 'EXECUTED';
+            const isVotingEnded = false; // For testing - always enabled
+            const hasAlreadyVoted = proposal.userVote?.voteOption && proposal.userVote.voteOption !== 'NONE';
+
+            return (
+              <Pressable
+                onPress={handleVote}
+                disabled={isVotingEnded}
+                className={`py-4 ${
+                  isVotingEnded
+                    ? 'bg-white/20'
+                    : 'bg-[#FFC043] active:opacity-80'
+                }`}
+                style={{
+                  borderWidth: 4,
+                  borderColor: isVotingEnded ? 'rgba(255, 255, 255, 0.3)' : '#FFC043',
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 4, height: 4 },
+                  shadowOpacity: isVotingEnded ? 0 : 1,
+                  shadowRadius: 0,
+                }}
+              >
+                <Text
+                  className={`text-center font-['PPNeueBit-Bold'] text-lg uppercase tracking-wider ${
+                    isVotingEnded ? 'text-white/40' : 'text-black'
+                  }`}
+                >
+                  {isVotingEnded
+                    ? 'Voting has ended'
+                    : hasAlreadyVoted
+                      ? 'Change Vote'
+                      : 'Cast Your Vote'}
+                </Text>
+              </Pressable>
+            );
+          })()}
+        </View>
+      ) : null}
+
+      {/* Vote Modal */}
+      {proposal && proposal.type === 'PEP' ? (
+        <VoteModal
+          visible={isVoteModalVisible}
+          onClose={handleCloseVoteModal}
+          proposal={proposal}
+          onSuccess={handleVoteSuccess}
+        />
+      ) : null}
     </ThemedView>
   );
 }

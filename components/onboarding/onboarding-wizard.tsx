@@ -18,21 +18,21 @@ interface SlideData {
 
 const SLIDES: SlideData[] = [
   {
-    title: 'Explore Freely',
+    title: 'Feel the Pulse',
     emoji: '🎮',
-    description: 'Browse proposals, check treasury stats, and discover the DAO feed. No wallet needed to explore!',
+    description: 'Track PEPPER metrics, treasury health, and community stats. Stay updated on the DAO\'s heartbeat!',
     color: '#00FF80',
   },
   {
-    title: 'Vote & Govern',
+    title: 'Decide Together',
     emoji: '🗳️',
-    description: 'Connect your wallet to vote on proposals, stake PEPPER tokens, and participate in governance decisions.',
+    description: 'Vote on governance proposals and shape the DAO\'s future. Your voice matters in every decision.',
     color: '#FF006E',
   },
   {
-    title: 'Earn Rewards',
+    title: 'Claim Your Power',
     emoji: '🏆',
-    description: 'Stake your tokens, participate actively, and earn rewards on Chiliz Chain (88888). Network guard keeps you safe!',
+    description: 'Stake tokens, earn reputation, and climb 6 ranks. Build streaks to unlock rewards and influence!',
     color: '#0080FF',
   },
 ];

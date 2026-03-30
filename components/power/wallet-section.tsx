@@ -4,9 +4,35 @@ import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 
 import { StakeModal } from '@/components/staking';
 import { Card } from '@/components/ui/card';
+import { PixelAlertModal } from '@/components/ui/pixel-alert-modal';
 import { NetworkMismatchWarning, WalletConnectButton, WalletStatusPill } from '@/components/wallet';
+import { getExplorerTxUrl } from '@/config/chains';
 import { useWallet } from '@/contexts/wallet-context';
 import { useStaking } from '@/hooks/use-staking';
+import { STORAGE_KEYS, StorageService } from '@/lib/storage';
+
+type OperationType = 'stake' | 'unstake' | 'claim';
+
+interface SuccessModalState {
+  visible: boolean;
+  txHash: string;
+  operation: OperationType;
+}
+
+const OPERATION_MESSAGES: Record<OperationType, { title: string; message: string }> = {
+  stake: {
+    title: 'Stake Successful',
+    message: 'Your PEPPER tokens have been staked successfully. You can now earn rewards!',
+  },
+  unstake: {
+    title: 'Unstake Successful',
+    message: 'Your PEPPER tokens have been unstaked and returned to your wallet.',
+  },
+  claim: {
+    title: 'Claim Successful',
+    message: 'Your staking rewards have been claimed and added to your wallet.',
+  },
+};
 
 /**
  * Wallet Section Component
@@ -16,7 +42,14 @@ import { useStaking } from '@/hooks/use-staking';
 export function WalletSection() {
   const { isConnected, isWrongNetwork, disconnect, switchToChiliz } = useWallet();
   const { formattedStakedBalance, isLoading: isStakingLoading } = useStaking();
-  const [showStakeModal, setShowStakeModal] = useState(false);
+  const [showStakeModal, setShowStakeModal] = useState(() => {
+    return StorageService.getBoolean(STORAGE_KEYS.STAKING_MODAL_OPEN) ?? false;
+  });
+  const [successModal, setSuccessModal] = useState<SuccessModalState>({
+    visible: false,
+    txHash: '',
+    operation: 'stake',
+  });
 
   const stakedAmount = parseFloat(formattedStakedBalance) || 0;
   const hasStaked = stakedAmount > 0;
@@ -32,7 +65,26 @@ export function WalletSection() {
 
   function handleOpenStakeModal() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    StorageService.setBoolean(STORAGE_KEYS.STAKING_MODAL_OPEN, true);
     setShowStakeModal(true);
+  }
+
+  function handleCloseStakeModal() {
+    StorageService.setBoolean(STORAGE_KEYS.STAKING_MODAL_OPEN, false);
+    setShowStakeModal(false);
+  }
+
+  function handleStakeSuccess(txHash: string, operation: OperationType) {
+    StorageService.setBoolean(STORAGE_KEYS.STAKING_MODAL_OPEN, false);
+    setSuccessModal({
+      visible: true,
+      txHash,
+      operation,
+    });
+  }
+
+  function handleCloseSuccessModal() {
+    setSuccessModal((prev) => ({ ...prev, visible: false }));
   }
 
   return (
@@ -98,7 +150,22 @@ export function WalletSection() {
       </Card>
 
       {/* Stake Modal */}
-      <StakeModal visible={showStakeModal} onClose={() => setShowStakeModal(false)} />
+      <StakeModal
+        visible={showStakeModal}
+        onClose={handleCloseStakeModal}
+        onSuccess={handleStakeSuccess}
+      />
+
+      {/* Success Modal */}
+      <PixelAlertModal
+        visible={successModal.visible}
+        onClose={handleCloseSuccessModal}
+        title={OPERATION_MESSAGES[successModal.operation].title}
+        message={OPERATION_MESSAGES[successModal.operation].message}
+        type="success"
+        copyableAddress={successModal.txHash}
+        explorerUrl={successModal.txHash ? getExplorerTxUrl(successModal.txHash) : undefined}
+      />
     </>
   );
 }

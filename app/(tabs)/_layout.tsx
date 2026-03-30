@@ -1,8 +1,18 @@
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
+import { useEffect } from 'react';
 
 import { PixelTabBar } from '@/components/ui/pixel-tab-bar';
+import { STORAGE_KEYS, StorageService } from '@/lib/storage';
 
 export default function TabLayout() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname) {
+      StorageService.setString(STORAGE_KEYS.ACTIVE_TAB, pathname);
+    }
+  }, [pathname]);
+
   return (
     <Tabs
       tabBar={(props) => <PixelTabBar {...props} />}

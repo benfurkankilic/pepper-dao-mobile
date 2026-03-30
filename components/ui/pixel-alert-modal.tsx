@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, Text, View } from 'react-native';
 
 import { copyToClipboard } from '@/lib/clipboard';
 
@@ -10,8 +10,9 @@ interface PixelAlertModalProps {
   onClose: () => void;
   title: string;
   message: string;
-  type?: 'error' | 'warning' | 'info';
+  type?: 'error' | 'warning' | 'info' | 'success';
   copyableAddress?: string;
+  explorerUrl?: string;
 }
 
 const TYPE_STYLES = {
@@ -36,10 +37,17 @@ const TYPE_STYLES = {
     buttonBg: '#0080FF',
     buttonText: '#FFFFFF',
   },
+  success: {
+    borderColor: '#00FF80',
+    titleColor: '#00FF80',
+    bgColor: '#1a1a1a',
+    buttonBg: '#00FF80',
+    buttonText: '#000000',
+  },
 };
 
 export function PixelAlertModal(props: PixelAlertModalProps) {
-  const { visible, onClose, title, message, type = 'error', copyableAddress } = props;
+  const { visible, onClose, title, message, type = 'error', copyableAddress, explorerUrl } = props;
   const styles = TYPE_STYLES[type];
   const [copied, setCopied] = useState(false);
 
@@ -55,6 +63,12 @@ export function PixelAlertModal(props: PixelAlertModalProps) {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function handleViewExplorer() {
+    if (!explorerUrl) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await Linking.openURL(explorerUrl);
   }
 
   return (
@@ -126,7 +140,22 @@ export function PixelAlertModal(props: PixelAlertModalProps) {
           </View>
 
           {/* Footer */}
-          <View className="p-4">
+          <View className="gap-2 p-4">
+            {explorerUrl ? (
+              <Pressable
+                onPress={handleViewExplorer}
+                className="flex-row items-center justify-center gap-2 border-2 py-3 active:opacity-80"
+                style={{ borderColor: styles.borderColor }}
+              >
+                <MaterialIcons name="open-in-new" size={16} color={styles.titleColor} />
+                <Text
+                  className="font-['PPNeueBit-Bold'] text-sm uppercase tracking-wider"
+                  style={{ color: styles.titleColor }}
+                >
+                  View on Explorer
+                </Text>
+              </Pressable>
+            ) : null}
             <Pressable
               onPress={handleClose}
               className="py-3 active:opacity-80"

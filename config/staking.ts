@@ -57,24 +57,15 @@ export const ERC20_ABI = [
  * Standard staking contract interface for stake/unstake/claim operations
  */
 export const STAKING_ABI = [
-  // Write functions
-  'function stake(uint256 amount) external',
-  'function unstake(uint256 amount) external',
-  'function withdraw(uint256 amount) external', // Alternative to unstake
-  'function claim() external',
-  'function getReward() external', // Alternative to claim
-  'function exit() external', // Unstake all + claim rewards
+  // Write functions - amount first, then token address
+  'function stake(uint256 amount, address token) external',
+  'function unstake(uint256 amount, address token) external',
+  'function claim(address token) external',
 
   // Read functions
-  'function stakedBalance(address account) view returns (uint256)',
-  'function balanceOf(address account) view returns (uint256)', // Alternative to stakedBalance
-  'function earned(address account) view returns (uint256)',
-  'function totalStaked() view returns (uint256)',
-  'function totalSupply() view returns (uint256)', // Alternative to totalStaked
-  'function rewardRate() view returns (uint256)',
-  'function rewardPerToken() view returns (uint256)',
-  'function lastUpdateTime() view returns (uint256)',
-  'function periodFinish() view returns (uint256)',
+  'function getStake(address staker, address token) view returns (uint256)',
+  'function getStakeData(address staker, address token, bool perEventType) view returns (tuple(uint256 totalStake, uint256 totalUnstakable, uint256 totalLocked, uint256 totalLockedFlexible, uint256 totalClaimable, uint256 totalPendingUnstake, uint256 totalExemptFromCooldownPeriod, uint256[] totalLockedPerEventType))',
+  'function getTotalStake(address token) view returns (uint256)',
 
   // Events
   'event Staked(address indexed user, uint256 amount)',
@@ -129,7 +120,7 @@ export const STAKING_ERROR_MESSAGES: Record<string, string> = {
 export function parseStakingError(error: unknown): string {
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('user rejected') || message.includes('user denied')) {
       return STAKING_ERROR_MESSAGES.USER_REJECTED;
     }
@@ -139,13 +130,16 @@ export function parseStakingError(error: unknown): string {
     if (message.includes('insufficient allowance') || message.includes('allowance')) {
       return STAKING_ERROR_MESSAGES.INSUFFICIENT_ALLOWANCE;
     }
+    if (message.includes('network changed')) {
+      return 'Please ensure your wallet is connected to Chiliz Chain (88888)';
+    }
     if (message.includes('network') || message.includes('timeout')) {
       return STAKING_ERROR_MESSAGES.NETWORK_ERROR;
     }
-    
+
     return error.message;
   }
-  
+
   return STAKING_ERROR_MESSAGES.UNKNOWN_ERROR;
 }
 

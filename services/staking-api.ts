@@ -257,16 +257,18 @@ export async function stakeTokens(
   try {
     const { signer } = await getProviderAndSigner(walletProvider);
     const stakingAddress = getStakingContractAddress();
+    const tokenAddress = getPepperTokenAddress();
 
     const stakingContract = new Contract(stakingAddress, STAKING_ABI, signer);
     const stakeAmount = parseUnits(amount, PEPPER_DECIMALS);
 
     console.log('[StakingAPI] Staking tokens:', {
       stakingAddress,
+      tokenAddress,
       amount: stakeAmount.toString(),
     });
 
-    const tx = await stakingContract.stake(stakeAmount);
+    const tx = await stakingContract.stake(stakeAmount, tokenAddress);
     
     console.log('[StakingAPI] Stake tx submitted:', tx.hash);
     
@@ -301,29 +303,18 @@ export async function unstakeTokens(
   try {
     const { signer } = await getProviderAndSigner(walletProvider);
     const stakingAddress = getStakingContractAddress();
+    const tokenAddress = getPepperTokenAddress();
 
     const stakingContract = new Contract(stakingAddress, STAKING_ABI, signer);
     const unstakeAmount = parseUnits(amount, PEPPER_DECIMALS);
 
     console.log('[StakingAPI] Unstaking tokens:', {
       stakingAddress,
+      tokenAddress,
       amount: unstakeAmount.toString(),
     });
 
-    // Check which method exists on the contract and use it
-    // Some staking contracts use 'unstake', others use 'withdraw'
-    const hasUnstake = typeof stakingContract.unstake === 'function';
-    const hasWithdraw = typeof stakingContract.withdraw === 'function';
-    
-    let tx;
-    if (hasUnstake) {
-      tx = await stakingContract.unstake(unstakeAmount);
-    } else if (hasWithdraw) {
-      console.log('[StakingAPI] Using withdraw instead of unstake');
-      tx = await stakingContract.withdraw(unstakeAmount);
-    } else {
-      throw new Error('Contract does not support unstake or withdraw methods');
-    }
+    const tx = await stakingContract.unstake(unstakeAmount, tokenAddress);
     
     console.log('[StakingAPI] Unstake tx submitted:', tx.hash);
     
@@ -356,25 +347,13 @@ export async function claimRewards(
   try {
     const { signer } = await getProviderAndSigner(walletProvider);
     const stakingAddress = getStakingContractAddress();
+    const tokenAddress = getPepperTokenAddress();
 
     const stakingContract = new Contract(stakingAddress, STAKING_ABI, signer);
 
-    console.log('[StakingAPI] Claiming rewards:', { stakingAddress });
+    console.log('[StakingAPI] Claiming rewards:', { stakingAddress, tokenAddress });
 
-    // Check which method exists on the contract and use it
-    // Some staking contracts use 'claim', others use 'getReward'
-    const hasClaim = typeof stakingContract.claim === 'function';
-    const hasGetReward = typeof stakingContract.getReward === 'function';
-    
-    let tx;
-    if (hasClaim) {
-      tx = await stakingContract.claim();
-    } else if (hasGetReward) {
-      console.log('[StakingAPI] Using getReward instead of claim');
-      tx = await stakingContract.getReward();
-    } else {
-      throw new Error('Contract does not support claim or getReward methods');
-    }
+    const tx = await stakingContract.claim(tokenAddress);
     
     console.log('[StakingAPI] Claim tx submitted:', tx.hash);
     

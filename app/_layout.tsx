@@ -4,7 +4,7 @@ import 'react-native-reanimated';
 import '../global.css';
 
 import { useEffect, useRef, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Linking, Platform, View } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -23,6 +23,7 @@ import { UserProvider } from '@/contexts/user-context';
 import { WalletProvider } from '@/contexts/wallet-context';
 
 import { loadFontsAsync } from '@/lib/fonts';
+import { STORAGE_KEYS, StorageService } from '@/lib/storage';
 import {
   addNotificationReceivedListener,
   addNotificationResponseListener,
@@ -52,6 +53,9 @@ export default function RootLayout() {
   // Refs for notification listeners
   const notificationReceivedRef = useRef<EventSubscription>();
   const notificationResponseRef = useRef<EventSubscription>();
+
+  // Ref for deep link timeout cleanup
+  const deepLinkTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Setup app state listener for query refetching
   useAppStateListener();
@@ -120,6 +124,38 @@ export default function RootLayout() {
       notificationResponseRef.current?.remove();
     };
   }, []);
+
+  /**
+   * Handle deep link returns from wallet apps (e.g., MetaMask)
+   * Restores the active tab when returning from wallet
+   */
+  useEffect(() => {
+    function handleDeepLink(event: { url: string }) {
+      const url = event.url;
+
+      // Bare scheme or WalletConnect callback = returning from wallet
+      if (url === 'pepperdao://' || url === 'pepperdao:///' || url.startsWith('pepperdao://wc')) {
+        const savedTab = StorageService.getString(STORAGE_KEYS.ACTIVE_TAB);
+        if (savedTab && savedTab !== '/') {
+          // Clear any existing timeout
+          if (deepLinkTimeoutRef.current) {
+            clearTimeout(deepLinkTimeoutRef.current);
+          }
+          deepLinkTimeoutRef.current = setTimeout(() => {
+            router.replace(savedTab as any);
+          }, 100);
+        }
+      }
+    }
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    return () => {
+      subscription.remove();
+      if (deepLinkTimeoutRef.current) {
+        clearTimeout(deepLinkTimeoutRef.current);
+      }
+    };
+  }, [router]);
 
   useEffect(() => {
     async function prepare() {

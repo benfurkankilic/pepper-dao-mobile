@@ -102,7 +102,7 @@ export function VoteButtons(props: VoteButtonsProps) {
           <Text className="text-[10px] text-white/80">
             {userVote !== 'NONE'
               ? 'You have already voted on this proposal'
-              : 'Voting is not available for this proposal'}
+              : 'Voting has ended for this proposal'}
           </Text>
         </View>
       ) : null}
