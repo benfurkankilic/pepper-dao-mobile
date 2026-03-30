@@ -222,8 +222,7 @@ export async function fetchGovernanceProposals(
     return filtered;
   } catch (error) {
     console.error('[Governance API] Error fetching proposals:', error);
-    // Return empty array instead of throwing to prevent app crashes
-    return [];
+    throw new Error('Unable to load proposals. Please check your connection and try again.');
   }
 }
 
@@ -269,7 +268,7 @@ export async function fetchGovernanceProposalById(
 
     if (error) {
       console.error('[Governance API] Supabase error:', error);
-      return null;
+      throw new Error('Unable to load this proposal. Please try again.');
     }
 
     if (!data) {
@@ -280,7 +279,7 @@ export async function fetchGovernanceProposalById(
     return transformProposal(data);
   } catch (error) {
     console.error('[Governance API] Error fetching proposal:', error);
-    return null;
+    throw new Error('Unable to load this proposal. Please try again.');
   }
 }
 

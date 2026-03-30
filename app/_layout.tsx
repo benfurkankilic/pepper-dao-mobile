@@ -24,6 +24,8 @@ import { WalletProvider } from '@/contexts/wallet-context';
 
 import { loadFontsAsync } from '@/lib/fonts';
 import { STORAGE_KEYS, StorageService } from '@/lib/storage';
+// Push notifications module is currently disabled (fully commented out).
+// Import individual exports defensively – they will be undefined until re-enabled.
 import {
   addNotificationReceivedListener,
   addNotificationResponseListener,
@@ -80,6 +82,12 @@ export default function RootLayout() {
    */
   useEffect(() => {
     async function initPushNotifications() {
+      // Push notifications module is currently disabled – skip gracefully
+      if (typeof setupNotificationChannel !== 'function') {
+        console.log('[Layout] Push notifications module disabled, skipping init');
+        return;
+      }
+
       try {
         // Setup Android notification channel
         await setupNotificationChannel();

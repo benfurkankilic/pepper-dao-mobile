@@ -3,7 +3,7 @@ import { Image, type ImageSource } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { openBrowserAsync, WebBrowserPresentationStyle } from 'expo-web-browser';
 import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
 import { TreasuryTransactionsModal } from '@/components/home/treasury-transactions-modal';
 import { ThemedText } from '@/components/themed-text';
@@ -63,7 +63,7 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
   }
 
   return (
-    <View className="flex-1 w-full pt-16 pb-8">
+    <ScrollView className="flex-1 w-full pt-16" contentContainerClassName="pb-8" showsVerticalScrollIndicator={false}>
       <Card
         elevation="lg"
         className="w-full border-4 border-white p-6"
@@ -160,7 +160,7 @@ export function PepperDashboard({ showHeader = true }: PepperDashboardProps) {
         copyableAddress="0x0ECAB88E26f7eA29D0DcB4aBcF060A5Ae09a1C2B"
         type="info"
       />
-    </View>
+    </ScrollView>
   );
 }
 

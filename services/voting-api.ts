@@ -103,7 +103,7 @@ export async function getVotingPower(
     return BigInt(1);
   } catch (error) {
     console.error('[VotingAPI] Failed to get voting power:', error);
-    return BigInt(0);
+    throw new Error('Unable to check voting power. Please try again.');
   }
 }
 
@@ -133,7 +133,7 @@ export async function canVote(
     return result;
   } catch (error) {
     console.warn('[VotingAPI] Failed to check if can vote:', error);
-    return false;
+    throw new Error('Unable to verify voting eligibility. Please try again.');
   }
 }
 

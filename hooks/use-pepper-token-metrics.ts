@@ -108,9 +108,8 @@ export function usePepperTokenMetrics(): UsePepperTokenMetricsResult {
   const query = useQuery<PepperTokenMetrics, Error>({
     queryKey: ['pepper', 'token-metrics'],
     queryFn: loadPepperTokenMetrics,
-    staleTime: 1000 * 30,
-    refetchInterval: 1000 * 30,
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5,
   });
 
   useEffect(() => {

@@ -29,6 +29,7 @@ export function StakingPanel() {
   const {
     stakingData,
     isLoading,
+    error: queryError,
     txStatus,
     txError,
     formattedWalletBalance,
@@ -42,6 +43,7 @@ export function StakingPanel() {
     stake,
     unstake,
     claim,
+    refetch,
     isReady,
   } = useStaking();
 
@@ -124,6 +126,29 @@ export function StakingPanel() {
           <Text className="mt-2 text-center font-['PPNeueBit-Bold'] text-sm text-gray-400">
             Please connect your wallet to access staking features
           </Text>
+        </View>
+      </Card>
+    );
+  }
+
+  if (queryError && !stakingData) {
+    return (
+      <Card variant="dark" elevation="lg" className="p-6">
+        <View className="items-center py-8">
+          <Text className="font-['PPNeueBit-Bold'] text-lg uppercase text-[#FF006E]">
+            Unable to load staking data
+          </Text>
+          <Text className="mt-2 text-center font-['PPNeueBit-Bold'] text-sm text-gray-400">
+            {queryError.message}
+          </Text>
+          <Pressable
+            onPress={() => { void refetch(); }}
+            className="mt-4 border-4 border-white bg-[#FF006E] px-6 py-3 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+          >
+            <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-white">
+              Retry
+            </Text>
+          </Pressable>
         </View>
       </Card>
     );

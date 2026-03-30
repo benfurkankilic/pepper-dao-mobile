@@ -78,10 +78,24 @@ export async function recordActivity(
 
     if (profileError || !profile) {
       console.error('[ActivityService] Failed to fetch profile:', profileError);
-      return { success: false, error: 'Failed to fetch profile' };
+      return { success: false, error: 'Unable to load your profile. Please try again.' };
     }
 
-    // 2. Calculate points for this event
+    // 2. Skip if WALLET_CONNECTED already recorded for this profile
+    if (eventType === 'WALLET_CONNECTED') {
+      const { count } = await supabase
+        .from('activities')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_id', profileId)
+        .eq('event_type', 'WALLET_CONNECTED');
+
+      if (count && count > 0) {
+        console.log('[ActivityService] WALLET_CONNECTED already recorded, skipping');
+        return { success: true };
+      }
+    }
+
+    // 3. Calculate points for this event
     const points = REPUTATION_POINTS[eventType];
     const newTotal = profile.reputation_points + points;
 
@@ -112,7 +126,7 @@ export async function recordActivity(
 
     if (activityError) {
       console.error('[ActivityService] Failed to insert activity:', activityError);
-      return { success: false, error: 'Failed to insert activity' };
+      return { success: false, error: 'Unable to record activity. Please try again.' };
     }
 
     // 5. Build profile updates
@@ -145,7 +159,7 @@ export async function recordActivity(
 
     if (updateError) {
       console.error('[ActivityService] Failed to update profile:', updateError);
-      return { success: false, error: 'Failed to update profile' };
+      return { success: false, error: 'Unable to update your profile. Please try again.' };
     }
 
     // 7. If rank changed, create a RANK_UP activity
@@ -164,6 +178,6 @@ export async function recordActivity(
     return { success: true, newRank: rankChanged ? newRank : undefined };
   } catch (error) {
     console.error('[ActivityService] Unexpected error:', error);
-    return { success: false, error: 'Unexpected error occurred' };
+    return { success: false, error: 'Something went wrong. Please try again.' };
   }
 }

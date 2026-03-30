@@ -172,15 +172,7 @@ export async function fetchStakingData(userAddress: string): Promise<StakingData
     };
   } catch (error) {
     console.error('[StakingAPI] Failed to fetch staking data:', error);
-    // Return default values on error
-    return {
-      walletBalance: BigInt(0),
-      stakedBalance: BigInt(0),
-      earnedRewards: BigInt(0),
-      allowance: BigInt(0),
-      totalStaked: BigInt(0),
-      decimals: PEPPER_DECIMALS,
-    };
+    throw new Error('Unable to load staking data. Please check your connection and try again.');
   }
 }
 

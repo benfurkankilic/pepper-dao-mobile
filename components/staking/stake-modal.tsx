@@ -28,7 +28,9 @@ export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
   const [unstakeAmount, setUnstakeAmount] = useState('');
 
   const {
+    stakingData,
     isLoading,
+    error: queryError,
     txStatus,
     txError,
     formattedWalletBalance,
@@ -42,6 +44,7 @@ export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
     stake,
     unstake,
     claim,
+    refetch,
   } = useStaking();
 
   const isPending = txStatus === 'pending';
@@ -137,6 +140,25 @@ export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
           </View>
 
           <ScrollView className="max-h-[65vh] px-4 py-4" showsVerticalScrollIndicator={false}>
+            {queryError && !stakingData ? (
+              <View className="items-center py-8">
+                <Text className="font-['PPNeueBit-Bold'] text-lg uppercase text-[#FF006E]">
+                  Unable to load staking data
+                </Text>
+                <Text className="mt-2 text-center font-['PPNeueBit-Bold'] text-sm text-gray-400">
+                  {queryError.message}
+                </Text>
+                <Pressable
+                  onPress={() => { void refetch(); }}
+                  className="mt-4 border-4 border-white bg-[#FF006E] px-6 py-3 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                >
+                  <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-white">
+                    Retry
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+
             {/* Balance Overview */}
             <View className="mb-4 flex-row gap-3">
               <View className="flex-1 bg-white/5 p-3">

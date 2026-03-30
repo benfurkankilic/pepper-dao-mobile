@@ -555,7 +555,7 @@ export default function GovernanceProposalDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { data: proposal, isLoading } = useGovernanceProposal({
+  const { data: proposal, isLoading, isError, error, refetch } = useGovernanceProposal({
     proposalId,
   });
 
@@ -648,6 +648,23 @@ export default function GovernanceProposalDetailScreen() {
               <Text style={{ marginTop: 12, fontSize: 12, color: '#FFFFFF' }}>
                 Loading proposal...
               </Text>
+            </View>
+          ) : isError && !proposal ? (
+            <View style={{ padding: 16, alignItems: 'center' }}>
+              <Text className="font-['PPNeueBit-Bold'] text-lg uppercase text-[#FF006E]">
+                Unable to load proposal
+              </Text>
+              <Text className="mt-2 text-center font-['PPNeueBit-Bold'] text-sm text-gray-400">
+                {error?.message ?? 'Please try again.'}
+              </Text>
+              <Pressable
+                onPress={() => { void refetch(); }}
+                className="mt-4 border-4 border-white bg-[#FF006E] px-6 py-3 shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
+              >
+                <Text className="font-['PPNeueBit-Bold'] text-xs uppercase tracking-wider text-white">
+                  Retry
+                </Text>
+              </Pressable>
             </View>
           ) : !proposal ? (
             <View style={{ padding: 16 }}>

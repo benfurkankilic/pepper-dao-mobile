@@ -98,8 +98,7 @@ export async function getMinProposerVotingPower(): Promise<bigint> {
     return minPower as bigint;
   } catch (error) {
     console.error('[ProposalAPI] Failed to fetch minProposerVotingPower:', error);
-    // Return 0 if we can't fetch (allow proposals)
-    return BigInt(0);
+    throw new Error('Unable to check proposer requirements. Please try again.');
   }
 }
 
@@ -135,7 +134,7 @@ export async function getUserVotingPower(userAddress: string): Promise<bigint> {
     return balance as bigint;
   } catch (error) {
     console.error('[ProposalAPI] Failed to fetch user voting power:', error);
-    return BigInt(0);
+    throw new Error('Unable to fetch your voting power. Please try again.');
   }
 }
 
