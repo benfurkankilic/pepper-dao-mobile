@@ -12,10 +12,8 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { formatUnits } from 'ethers';
 
 import { useCreateProposal } from '@/hooks/use-create-proposal';
-import { useProposerEligibility } from '@/hooks/use-proposer-eligibility';
 import { useWallet } from '@/contexts/wallet-context';
 import {
   PROPOSAL_FORM_LIMITS,
@@ -33,7 +31,6 @@ const INITIAL_STATE: ProposalFormState = {
 export default function CreateProposalScreen() {
   const router = useRouter();
   const { isConnected } = useWallet();
-  const { data: eligibility, isLoading: isCheckingEligibility } = useProposerEligibility();
   const { submit, isSubmitting, status, error: submitError } = useCreateProposal();
 
   const [form, setForm] = useState<ProposalFormState>(INITIAL_STATE);
@@ -132,21 +129,7 @@ export default function CreateProposalScreen() {
     }
   }
 
-  // Check eligibility
-  const isEligible = eligibility?.isEligible ?? false;
-  const canSubmit = isConnected && isEligible && form.title.length > 0 && !isSubmitting;
-
-  // Format voting power for display
-  const formatVotingPower = (power: bigint) => {
-    const formatted = parseFloat(formatUnits(power, 18));
-    if (formatted >= 1_000_000) {
-      return `${(formatted / 1_000_000).toFixed(1)}M`;
-    }
-    if (formatted >= 1_000) {
-      return `${(formatted / 1_000).toFixed(1)}K`;
-    }
-    return formatted.toFixed(0);
-  };
+  const canSubmit = isConnected && form.title.length > 0 && !isSubmitting;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
@@ -162,13 +145,7 @@ export default function CreateProposalScreen() {
         </View>
 
         <ScrollView className="flex-1 px-4 py-4" keyboardShouldPersistTaps="handled">
-          {/* Eligibility Banner */}
-          {isCheckingEligibility ? (
-            <View className="mb-4 flex-row items-center gap-2 bg-white/10 p-3">
-              <ActivityIndicator size="small" color="#FFFFFF" />
-              <Text className="text-xs text-white/80">Checking eligibility...</Text>
-            </View>
-          ) : !isConnected ? (
+          {!isConnected ? (
             <View className="mb-4 bg-[#FF006E]/10 p-3">
               <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#FF006E]">
                 Wallet Not Connected
@@ -177,29 +154,7 @@ export default function CreateProposalScreen() {
                 Please connect your wallet to submit proposals.
               </Text>
             </View>
-          ) : !isEligible ? (
-            <View className="mb-4 bg-[#FFC043]/10 p-3">
-              <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#FFC043]">
-                Insufficient Voting Power
-              </Text>
-              <Text className="mt-1 text-xs text-white/80">
-                You need at least {eligibility ? formatVotingPower(eligibility.minRequired) : '...'} locked
-                PEPPER to submit proposals.
-              </Text>
-              <Text className="mt-1 text-xs text-white/60">
-                Your power: {eligibility ? formatVotingPower(eligibility.userPower) : '0'}
-              </Text>
-            </View>
-          ) : (
-            <View className="mb-4 bg-[#00FF80]/10 p-3">
-              <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#00FF80]">
-                Eligible to Submit Proposals
-              </Text>
-              <Text className="mt-1 text-xs text-white/80">
-                Voting power: {formatVotingPower(eligibility.userPower)}
-              </Text>
-            </View>
-          )}
+          ) : null}
 
           {/* Title Input */}
           <View className="mb-4">

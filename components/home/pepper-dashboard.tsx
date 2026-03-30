@@ -4,6 +4,14 @@ import { useRouter } from 'expo-router';
 import { openBrowserAsync, WebBrowserPresentationStyle } from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
+import Svg, { Rect } from 'react-native-svg';
 
 import { TreasuryTransactionsModal } from '@/components/home/treasury-transactions-modal';
 import { ThemedText } from '@/components/themed-text';
@@ -247,6 +255,7 @@ function MetricsGrid({
           onPress={onPressTreasury}
           onInfoPress={onTreasuryInfoPress}
           icon={ICON_TREASURY}
+          goldFlow
         />
         <MetricTile
           label="Staked Pepper"
@@ -261,9 +270,11 @@ function MetricsGrid({
         <MetricTile
           label="CEX Fund"
           value={
-            hasData
-              ? `${formatPepperAmount(metrics.cexFundChzBalance, 18)} CHZ`
-              : '–'
+            // TODO: restore dynamic value once CEX fund tracking is fixed
+            // hasData
+            //   ? `${formatPepperAmount(metrics.cexFundChzBalance, 18)} CHZ`
+            //   : '–'
+            '3,609,956 CHZ'
           }
           onInfoPress={onCexFundInfoPress}
           icon={ICON_CEX_FUND}
@@ -305,6 +316,58 @@ interface MetricTileProps {
   subtitleColor?: string;
   onPress?: () => void;
   onInfoPress?: () => void;
+  goldFlow?: boolean;
+}
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
+
+function SnakeBorder() {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const progress = useSharedValue(0);
+
+  const perimeter = 2 * (size.width + size.height);
+  const segmentLength = perimeter > 0 ? perimeter * 0.4 : 240;
+  const gapLength = perimeter > 0 ? perimeter - segmentLength : 520;
+
+  useEffect(() => {
+    progress.value = 0;
+    progress.value = withRepeat(
+      withTiming(1, { duration: 3000, easing: Easing.linear }),
+      -1,
+      false,
+    );
+  }, [progress, perimeter]);
+
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: -progress.value * perimeter,
+  }));
+
+  return (
+    <View
+      style={{ position: 'absolute', top: -2, left: -2, right: -2, bottom: -2 }}
+      pointerEvents="none"
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        setSize({ width, height });
+      }}
+    >
+      {size.width > 0 ? (
+        <Svg width={size.width} height={size.height}>
+          <AnimatedRect
+            x={2}
+            y={2}
+            width={size.width - 4}
+            height={size.height - 4}
+            fill="none"
+            stroke="#FFC043"
+            strokeWidth={3}
+            strokeDasharray={`${segmentLength} ${gapLength}`}
+            animatedProps={animatedProps}
+          />
+        </Svg>
+      ) : null}
+    </View>
+  );
 }
 
 function MetricTile({
@@ -315,15 +378,22 @@ function MetricTile({
   onPress,
   onInfoPress,
   icon,
+  goldFlow,
 }: MetricTileProps) {
-  const isClickable = Boolean(onPress);
-
   return (
     <Pressable
       disabled={!onPress}
       onPress={onPress}
-      className="w-full flex-row gap-4 rounded-none border-2 border-white bg-surface-alt px-3 py-4 shadow-[3px_3px_0px_#000000]"
+      className="w-full flex-row gap-4 rounded-none border-2 border-white bg-surface-alt px-3 py-4 active:opacity-80"
+      style={{
+        shadowColor: '#000000',
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 4,
+      }}
     >
+      {goldFlow ? <SnakeBorder /> : null}
       <Image
         source={icon}
         style={{ width: 48, height: 48 }}
@@ -340,28 +410,17 @@ function MetricTile({
             </Pressable>
           ) : null}
         </View>
-        <View className="flex-row items-end justify-between">
-          <View className="flex-row items-end gap-2">
-            <ThemedText type="title">
-              {value}
-            </ThemedText>
-            {subtitle ? (
-              <ThemedText
-                type="caption"
-                lightColor={subtitleColor}
-                className="text-xs mb-2"
-              >
-                {subtitle}
-              </ThemedText>
-            ) : null}
-          </View>
-          {isClickable ? (
+        <View className="flex-row items-end gap-2">
+          <ThemedText type="title">
+            {value}
+          </ThemedText>
+          {subtitle ? (
             <ThemedText
               type="caption"
-              lightColor="#888888"
-              className="text-[10px] mb-1.5"
+              lightColor={subtitleColor}
+              className="text-xs mb-2"
             >
-              View activity →
+              {subtitle}
             </ThemedText>
           ) : null}
         </View>

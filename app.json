@@ -9,6 +9,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.chiliz.pepperdao",
+      "versionCode": 2,
       "predictiveBackGestureEnabled": false
     },
     "experiments": {
@@ -18,6 +19,7 @@
     "icon": "./assets/images/icon.png",
     "ios": {
       "bundleIdentifier": "com.chiliz.pepperdao",
+      "buildNumber": "2",
       "supportsTablet": false,
       "appleTeamId": "RBP7PE82SN"
     },

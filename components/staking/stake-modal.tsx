@@ -12,7 +12,7 @@ import { useStaking } from '@/hooks/use-staking';
 
 import { StakeInput } from './stake-input';
 
-type OperationType = 'stake' | 'unstake' | 'claim';
+type OperationType = 'stake' | 'unstake';
 
 interface StakeModalProps {
   visible: boolean;
@@ -35,15 +35,12 @@ export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
     txError,
     formattedWalletBalance,
     formattedStakedBalance,
-    formattedEarnedRewards,
     canStake,
     canUnstake,
-    canClaim,
     needsApproval,
     approve,
     stake,
     unstake,
-    claim,
     refetch,
   } = useStaking();
 
@@ -96,15 +93,6 @@ export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
     }
   }
 
-  async function handleClaim() {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const result = await claim();
-    if (result.success && result.txHash) {
-      onClose();
-      onSuccess?.(result.txHash, 'claim');
-    }
-  }
-
   // Validation
   const stakeAmountNum = parseFloat(stakeAmount) || 0;
   const showApproveButton = stakeAmountNum > 0 && needsApproval(stakeAmount);
@@ -120,7 +108,6 @@ export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
 
   const walletBalance = parseFloat(formattedWalletBalance) || 0;
   const stakedBalance = parseFloat(formattedStakedBalance) || 0;
-  const earnedRewards = parseFloat(formattedEarnedRewards) || 0;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
@@ -177,37 +164,6 @@ export function StakeModal({ visible, onClose, onSuccess }: StakeModalProps) {
                   {isLoading ? '...' : stakedBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </Text>
               </View>
-            </View>
-
-            {/* Rewards */}
-            <View className="mb-4 flex-row items-center justify-between bg-[#00FF80]/10 p-3">
-              <View>
-                <Text className="font-['PPNeueBit-Bold'] text-[10px] uppercase tracking-wider text-[#00FF80]">
-                  Rewards
-                </Text>
-                <Text className="mt-0.5 font-['PPNeueBit-Bold'] text-base text-white">
-                  {isLoading ? '...' : earnedRewards.toLocaleString(undefined, { maximumFractionDigits: 2 })} PEPPER
-                </Text>
-              </View>
-              <Pressable
-                onPress={handleClaim}
-                disabled={!canClaim() || isPending}
-                className={`px-4 py-2 ${
-                  canClaim() && !isPending ? 'bg-[#00FF80] active:opacity-80' : 'bg-white/20'
-                }`}
-              >
-                {isPending ? (
-                  <ActivityIndicator size="small" color="#000000" />
-                ) : (
-                  <Text
-                    className={`font-['PPNeueBit-Bold'] text-xs uppercase ${
-                      canClaim() ? 'text-black' : 'text-white/40'
-                    }`}
-                  >
-                    Claim
-                  </Text>
-                )}
-              </Pressable>
             </View>
 
             {/* Tabs */}

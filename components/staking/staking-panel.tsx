@@ -2,7 +2,7 @@
  * Staking Panel Component
  *
  * Main UI for PEPPER token staking operations.
- * Displays balances, rewards, and provides stake/unstake/claim actions.
+ * Displays balances and provides stake/unstake actions.
  */
 
 import * as Haptics from 'expo-haptics';
@@ -34,15 +34,12 @@ export function StakingPanel() {
     txError,
     formattedWalletBalance,
     formattedStakedBalance,
-    formattedEarnedRewards,
     canStake,
     canUnstake,
-    canClaim,
     needsApproval,
     approve,
     stake,
     unstake,
-    claim,
     refetch,
     isReady,
   } = useStaking();
@@ -81,14 +78,6 @@ export function StakingPanel() {
       if (result.txHash) {
         setLastTxHash(result.txHash);
       }
-    }
-  }
-
-  async function handleClaim() {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const result = await claim();
-    if (result.txHash) {
-      setLastTxHash(result.txHash);
     }
   }
 
@@ -180,38 +169,6 @@ export function StakingPanel() {
           <Text className="mt-1 font-mono text-sm text-white">
             {isLoading ? '...' : parseFloat(formattedStakedBalance).toLocaleString(undefined, { maximumFractionDigits: 2 })}
           </Text>
-        </View>
-      </View>
-
-      {/* Rewards Section */}
-      <View className="mb-6 border-2 border-[#00FF80] bg-[#003311] p-4">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="font-['PPNeueBit-Bold'] text-xs uppercase text-[#00FF80]">
-              Claimable Rewards
-            </Text>
-            <Text className="mt-1 font-mono text-lg text-white">
-              {isLoading ? '...' : parseFloat(formattedEarnedRewards).toLocaleString(undefined, { maximumFractionDigits: 6 })} PEPPER
-            </Text>
-          </View>
-          <Pressable
-            onPress={handleClaim}
-            disabled={!canClaim() || isPending}
-            className={`
-              border-3 border-white px-4 py-2
-              shadow-[3px_3px_0px_#000000]
-              active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
-              ${canClaim() && !isPending ? 'bg-[#00FF80]' : 'bg-gray-600 opacity-50'}
-            `}
-          >
-            {isPending ? (
-              <ActivityIndicator size="small" color="#000000" />
-            ) : (
-              <Text className="font-['PPNeueBit-Bold'] text-sm uppercase text-black">
-                Claim
-              </Text>
-            )}
-          </Pressable>
         </View>
       </View>
 

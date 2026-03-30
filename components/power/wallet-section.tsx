@@ -11,7 +11,7 @@ import { useWallet } from '@/contexts/wallet-context';
 import { useStaking } from '@/hooks/use-staking';
 import { STORAGE_KEYS, StorageService } from '@/lib/storage';
 
-type OperationType = 'stake' | 'unstake' | 'claim';
+type OperationType = 'stake' | 'unstake';
 
 interface SuccessModalState {
   visible: boolean;
