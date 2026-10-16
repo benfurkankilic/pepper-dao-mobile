@@ -52,7 +52,7 @@ export function DecideScreen() {
         <PixelButton
           label="+ NEW"
           variant="outlineGold"
-          paddingVertical={6}
+          paddingVertical={8}
           style={{ alignSelf: 'auto' }}
           onPress={() => router.push('/governance/create')}
         />

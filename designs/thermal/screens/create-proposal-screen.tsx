@@ -4,7 +4,6 @@ import { type ReactNode, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -12,7 +11,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
+import Animated, { FadeInRight, FadeOutLeft, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
@@ -25,11 +24,12 @@ import {
   type ProposalFormState,
 } from '@/types/proposal-form';
 
-import { BackLink, Tag, Touchable } from '../components/atoms';
+import { Tag, Touchable } from '../components/atoms';
 import { Panel } from '../components/panel';
 import { PixelBar } from '../components/pixel-bar';
 import { PixelButton } from '../components/pixel-button';
 import { ThermalBackground } from '../components/thermal-background';
+import { NAV_BAR_HEIGHT, ThermalNavBar } from '../components/thermal-nav-bar';
 import { SPACE, THERMAL_COLORS, TYPE } from '../theme';
 
 type Stage = 0 | 1 | 2;
@@ -133,6 +133,11 @@ export function CreateProposalScreen() {
     }
   }
 
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+
   const canSubmit = isConnected && form.title.trim().length > 0 && !isSubmitting;
   const footerSpace = FOOTER_HEIGHT + insets.bottom + 24;
 
@@ -141,16 +146,13 @@ export function CreateProposalScreen() {
       <ThermalBackground preset="rulebook" />
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView
+        <Animated.ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.content, { paddingTop: TOP_SPACE, paddingBottom: footerSpace }]}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={[styles.content, { paddingTop: TOP_SPACE + NAV_BAR_HEIGHT + 12, paddingBottom: footerSpace }]}
         >
-          <View style={styles.between}>
-            <BackLink label="CANCEL" onPress={handleCancel} />
-            <Text style={[TYPE.meta18, { color: THERMAL_COLORS.gold }]}>{`STAGE ${stage + 1} / ${STAGES.length}`}</Text>
-          </View>
-
           <View style={{ gap: 2 }}>
             <Text style={TYPE.display40}>NEW PROPOSAL</Text>
             <Text style={[TYPE.meta18, { color: 'rgba(255,255,255,0.6)' }]}>Basics · Details · Review & submit</Text>
@@ -197,8 +199,17 @@ export function CreateProposalScreen() {
               />
             )}
           </Animated.View>
-        </ScrollView>
+        </Animated.ScrollView>
       </KeyboardAvoidingView>
+
+      <ThermalNavBar
+        title="NEW PROPOSAL"
+        icon="close"
+        onBack={handleCancel}
+        accessory={`STAGE ${stage + 1} / ${STAGES.length}`}
+        scrollY={scrollY}
+        topInset={TOP_SPACE}
+      />
 
       <View pointerEvents="box-none" style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <FooterFade />
@@ -414,7 +425,7 @@ function ReviewStage({ form, isConnected, onConnect, submitError, succeeded }: R
             <Text style={[TYPE.label10, { color: THERMAL_COLORS.red }]}>WALLET NOT CONNECTED</Text>
           </View>
           <Text style={TYPE.body14}>Please connect your wallet to submit proposals.</Text>
-          <PixelButton label="CONNECT WALLET >" variant="outlineGold" paddingVertical={10} onPress={onConnect} />
+          <PixelButton label="CONNECT WALLET >" variant="outlineGold" paddingVertical={12} onPress={onConnect} />
         </Panel>
       ) : null}
 
@@ -536,7 +547,7 @@ function progressColors(stage: Stage): Array<string> {
 
 const STAGES = ['BASICS', 'DETAILS', 'REVIEW'] as const;
 /** The route is presented as a modal card (see app/_layout.tsx), so the status bar is not above us */
-const TOP_SPACE = 24;
+const TOP_SPACE = 8;
 const CELLS_PER_STAGE = 4;
 const FOOTER_HEIGHT = 74;
 

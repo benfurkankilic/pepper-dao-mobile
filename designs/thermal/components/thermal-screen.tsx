@@ -7,6 +7,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { useFocusKey } from '../hooks/use-focus-key';
 import { NAV_HEIGHT, SPACE, THERMAL_COLORS } from '../theme';
 import { ThermalBackground, type ThermalPreset } from './thermal-background';
+import { NAV_BAR_HEIGHT, ThermalNavBar } from './thermal-nav-bar';
 
 interface ThermalScreenProps {
   preset: ThermalPreset;
@@ -18,6 +19,14 @@ interface ThermalScreenProps {
   overlay?: ReactNode;
   refreshing?: boolean;
   onRefresh?: () => void;
+  /** Fixed top bar for pushed screens; content starts below it */
+  navBar?: {
+    title: string;
+    onBack: () => void;
+    accessory?: ReactNode;
+    /** Scroll offset where the bar fully fills in (≈ large title height) */
+    collapseAt?: number;
+  };
 }
 
 /**
@@ -32,6 +41,7 @@ export function ThermalScreen({
   overlay,
   refreshing = false,
   onRefresh,
+  navBar,
 }: ThermalScreenProps) {
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
@@ -49,7 +59,7 @@ export function ThermalScreen({
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: insets.top + 4,
+          paddingTop: insets.top + (navBar ? NAV_BAR_HEIGHT + 12 : 4),
           paddingHorizontal: SPACE.margin,
           paddingBottom: bottomSpace + insets.bottom,
           gap,
@@ -68,7 +78,17 @@ export function ThermalScreen({
       >
         {children}
       </Animated.ScrollView>
-      <TopFade height={insets.top + 18} />
+      {navBar ? (
+        <ThermalNavBar
+          title={navBar.title}
+          onBack={navBar.onBack}
+          accessory={navBar.accessory}
+          collapseAt={navBar.collapseAt}
+          scrollY={scrollY}
+        />
+      ) : (
+        <TopFade height={insets.top + 18} />
+      )}
       {overlay}
     </View>
   );

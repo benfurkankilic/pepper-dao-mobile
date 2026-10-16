@@ -12,7 +12,7 @@ import Animated, {
 
 import { StorageService } from '@/lib/storage';
 
-import { BackLink, Tag, Touchable } from '../components/atoms';
+import { Tag, Touchable } from '../components/atoms';
 import { HardShadow } from '../components/panel';
 import { ThermalScreen } from '../components/thermal-screen';
 import { CONSTITUTION, type ConstitutionArticle } from '../lib/constitution';
@@ -48,12 +48,11 @@ export function RulebookScreen() {
   }
 
   return (
-    <ThermalScreen preset="rulebook" bottomSpace={48}>
-      <Animated.View style={styles.between}>
-        <BackLink label="BACK" onPress={handleBack} />
-        <Text style={[TYPE.meta18, { color: THERMAL_COLORS.gold }]}>{`READ ${readSet.size} / ${CONSTITUTION.length}`}</Text>
-      </Animated.View>
-
+    <ThermalScreen
+      preset="rulebook"
+      bottomSpace={48}
+      navBar={{ title: 'RULEBOOK', onBack: handleBack, accessory: `READ ${readSet.size} / ${CONSTITUTION.length}` }}
+    >
       <Animated.View style={{ gap: 2 }}>
         <Text style={TYPE.display40}>RULEBOOK</Text>
         <Text style={[TYPE.meta18, { color: 'rgba(255,255,255,0.6)' }]}>

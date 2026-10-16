@@ -15,7 +15,7 @@ import {
 } from '@/lib/voting-calculations';
 import type { GovernanceProposal, VoteOption } from '@/types/governance';
 
-import { BackLink, DashedDivider, Tag } from '../components/atoms';
+import { DashedDivider, Tag } from '../components/atoms';
 import { Panel } from '../components/panel';
 import { getVoteBarColors, PixelBar } from '../components/pixel-bar';
 import { PixelButton } from '../components/pixel-button';
@@ -75,6 +75,10 @@ export function ProposalDetailScreen() {
       bottomSpace={dockHeight + 24}
       refreshing={isRefetching}
       onRefresh={() => void refetch()}
+      navBar={{
+        title: proposal ? shortenKey(proposal.key) : 'PROPOSAL',
+        onBack: handleBack,
+      }}
       overlay={
         proposal && canVote ? (
           <VoteDock
@@ -86,10 +90,6 @@ export function ProposalDetailScreen() {
         ) : null
       }
     >
-      <Animated.View style={styles.between}>
-        <BackLink label="PROPOSALS" onPress={handleBack} />
-        {proposal ? <Text style={[TYPE.label10, { color: THERMAL_COLORS.gold }]}>{shortenKey(proposal.key)}</Text> : null}
-      </Animated.View>
 
       {isLoading && !proposal ? (
         <View style={styles.center}>

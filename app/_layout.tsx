@@ -20,6 +20,7 @@ import { OnboardingGate } from '@/components/onboarding';
 import { IS_THERMAL, pickDesign } from '@/config/design';
 import { HQ_COLORS } from '@/designs/hq/theme';
 import { RankUpProvider } from '@/designs/thermal/components/rank-up-overlay';
+import { WalletPickerProvider } from '@/designs/thermal/components/wallet-picker';
 import { THERMAL_COLORS } from '@/designs/thermal/theme';
 import { WalletProfileLinker } from '@/components/wallet';
 import { OnboardingProvider } from '@/contexts/onboarding-context';
@@ -254,8 +255,12 @@ const SCREEN_BACKGROUND = pickDesign<string | null>({
   hq: HQ_COLORS.bg,
 });
 
-/** Design-specific global providers (the thermal design celebrates rank-ups app-wide) */
+/** Design-specific global providers (thermal: rank-up celebrations, thermal wallet picker) */
 function DesignProvider({ children }: { children: ReactNode }) {
   if (!IS_THERMAL) return <>{children}</>;
-  return <RankUpProvider>{children}</RankUpProvider>;
+  return (
+    <RankUpProvider>
+      <WalletPickerProvider>{children}</WalletPickerProvider>
+    </RankUpProvider>
+  );
 }

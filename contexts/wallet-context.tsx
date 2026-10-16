@@ -34,6 +34,18 @@ interface WalletContextValue {
 const WalletContext = createContext<WalletContextValue | undefined>(undefined);
 
 /**
+ * Lets a design replace the connect UI (the thermal design shows its own
+ * wallet picker before handing off to Reown). Returns an unregister function.
+ */
+let connectOverride: (() => void) | null = null;
+export function setWalletConnectOverride(handler: () => void): () => void {
+  connectOverride = handler;
+  return () => {
+    if (connectOverride === handler) connectOverride = null;
+  };
+}
+
+/**
  * Clear wallet session from storage
  */
 function clearWalletSession(): void {
@@ -125,6 +137,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       // Note: Storage clearing is handled in useEffect on mount for stale sessions
       // and on disconnect. Do NOT clear storage here as it creates race conditions
       // with the AppKit initialization.
+      if (connectOverride) {
+        connectOverride();
+        return;
+      }
       open();
     } catch (err) {
       console.error('Connection error:', err);

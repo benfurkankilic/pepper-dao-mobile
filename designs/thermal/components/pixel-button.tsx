@@ -34,6 +34,10 @@ export function PixelButton({
   const config = VARIANTS[variant];
   const { pressed, pressHandlers } = usePressFeedback();
   const hasShadow = Boolean(config.shadow);
+  // RN adds the border to the box; take it out of the padding so every
+  // variant's face is the same height and outline buttons line up with the
+  // face of a solid button (its hard shadow then sits below the row)
+  const borderWidth = config.borderWidth ?? 0;
 
   // Solid buttons sink toward their shadow; outline buttons just dim
   const animatedStyle = useAnimatedStyle(() => ({
@@ -58,10 +62,10 @@ export function PixelButton({
         style={[
           styles.body,
           {
-            paddingVertical,
+            paddingVertical: Math.max(0, paddingVertical - borderWidth),
             backgroundColor: config.background,
             borderColor: config.border ?? 'transparent',
-            borderWidth: config.borderWidth ?? 0,
+            borderWidth,
           },
           animatedStyle,
         ]}
